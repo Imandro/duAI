@@ -28,10 +28,12 @@ class DashboardView(QWidget):
             base = sys._MEIPASS
         else:
             base = os.path.join(os.path.dirname(__file__), "..", "..")
-        icon_path = os.path.join(base, "assets", "duAI.png")
-        if os.path.exists(icon_path):
-            pixmap = QPixmap(icon_path)
-            logo_label.setPixmap(pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        for name in ("duAI.png", "duAI.ico"):
+            icon_path = os.path.join(base, "assets", name)
+            if os.path.exists(icon_path):
+                pixmap = QPixmap(icon_path)
+                logo_label.setPixmap(pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+                break
         layout.addWidget(logo_label)
 
         layout.addWidget(self._micro("ESTADO"))

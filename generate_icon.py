@@ -1,32 +1,47 @@
-from PIL import Image, ImageDraw
 import os
+import sys
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-def create_icon():
-    base = Image.new("RGBA", (256, 256), (255, 255, 255, 255))
-    draw = ImageDraw.Draw(base)
+from PySide6.QtCore import QSize
+from PySide6.QtGui import QColor, QImage, QPainter, QPixmap
+from PySide6.QtWidgets import QApplication
+from PySide6.QtSvg import QSvgRenderer
 
-    m = 38
-    draw.rectangle([m, 64, 256 - m, 192], fill=(0, 0, 0, 255))
-    im = 90
-    draw.rectangle([im, 96, 256 - im, 160], fill=(255, 255, 255, 255))
+app = QApplication(sys.argv)
 
-    sizes = [16, 32, 48, 64, 128, 256]
-    resized = []
-    for s in sizes:
-        resized.append(base.resize((s, s), Image.Resampling.LANCZOS))
+ASSETS = os.path.join(os.path.dirname(__file__), "assets")
+sizes = [16, 32, 48, 64, 128, 256]
 
-    icon_path = os.path.join(os.path.dirname(__file__), "assets", "duAI.ico")
-    resized[0].save(
-        icon_path,
-        format="ICO",
-        sizes=[(s, s) for s in sizes],
-        append_images=resized[1:],
-    )
-    print(f"ICON: {os.path.getsize(icon_path)} bytes")
+for svg_name, prefix in [("duAI_black.svg", "duAI"), ("duAI_white.svg", "duAI_white")]:
+    svg_path = os.path.join(ASSETS, svg_name)
+    renderer = QSvgRenderer(svg_path)
+    if not renderer.isValid():
+        print(f"SVG INVALIDO: {svg_path}")
+        continue
 
-    png_path = os.path.join(os.path.dirname(__file__), "assets", "duAI.png")
-    base.save(png_path, format="PNG")
-    print(f"PNG: {os.path.getsize(png_path)} bytes")
+    for size in sizes:
+        image = QImage(size, size, QImage.Format.Format_ARGB32)
+        image.fill(QColor(0, 0, 0, 0))
+        painter = QPainter(image)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        renderer.render(painter)
+        painter.end()
+        out = os.path.join(ASSETS, f"{prefix}_{size}.png")
+        image.save(out, "PNG")
 
-if __name__ == "__main__":
-    create_icon()
+    image = QImage(256, 256, QImage.Format.Format_ARGB32)
+    image.fill(QColor(0, 0, 0, 0))
+    painter = QPainter(image)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    renderer.render(painter)
+    painter.end()
+    main = os.path.join(ASSETS, f"{prefix}.png")
+    image.save(main, "PNG")
+    print(f"{prefix}.png: {os.path.getsize(main)} bytes")
+
+from PIL import Image as PILImage
+
+ico_path = os.path.join(ASSETS, "duAI.ico")
+imgs = [PILImage.open(os.path.join(ASSETS, f"duAI_{s}.png")) for s in sizes]
+imgs[0].save(ico_path, format="ICO", sizes=[(s, s) for s in sizes], append_images=imgs[1:])
+print(f"ICO: {os.path.getsize(ico_path)} bytes")

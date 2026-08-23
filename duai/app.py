@@ -109,9 +109,9 @@ class MainWindow(QMainWindow):
 
         logo_label = QLabel()
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        icon_path = _icon_path()
-        if os.path.exists(icon_path):
-            pixmap = QPixmap(icon_path)
+        lp = _logo_path()
+        if lp and os.path.exists(lp):
+            pixmap = QPixmap(lp)
             logo_label.setPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         brand_box.addWidget(logo_label)
 
@@ -469,9 +469,23 @@ def _icon_path():
         base = sys._MEIPASS
     else:
         base = os.path.join(os.path.dirname(__file__), "..")
-    ico = os.path.join(base, "assets", "duAI.ico")
-    png = os.path.join(base, "assets", "duAI.png")
-    return ico if os.path.exists(ico) else png
+    for name in ("duAI.ico", "duAI.png"):
+        p = os.path.join(base, "assets", name)
+        if os.path.exists(p):
+            return p
+    return ""
+
+
+def _logo_path():
+    if getattr(sys, "frozen", False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.join(os.path.dirname(__file__), "..")
+    for name in ("duAI.png", "duAI.ico"):
+        p = os.path.join(base, "assets", name)
+        if os.path.exists(p):
+            return p
+    return ""
 
 
 def create_app(argv=None):
