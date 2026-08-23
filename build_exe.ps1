@@ -15,8 +15,10 @@ if (-not (Test-Path $venvPython)) {
     --onefile `
     --noconsole `
     --name duAI `
+    --icon "assets\duAI.png" `
     --add-data "config;config" `
     --add-data "duai\ui\theme.qss;duai\ui" `
+    --add-data "assets;assets" `
     main.py
 
 if (Test-Path (Join-Path $root "dist\duAI.exe")) {

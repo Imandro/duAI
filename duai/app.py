@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PySide6.QtCore import Qt
@@ -43,6 +44,7 @@ class LoginDialog(QDialog):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("duAI")
+        self.setWindowIcon(QIcon(_icon_path()))
         self.setFixedSize(360, 200)
         layout = QVBoxLayout(self)
         layout.setContentsMargins(40, 32, 40, 24)
@@ -305,15 +307,18 @@ class MainWindow(QMainWindow):
     # ---------------- bandeja / hotkey / timer ----------------
 
     def _make_tray_icon(self):
-        from .ui.theme import color
+        icon = QIcon(_icon_path())
+        if icon.isNull():
+            from .ui.theme import color
 
-        pixmap = QPixmap(16, 16)
-        pixmap.fill(QColor(color("BG")))
-        painter = QPainter(pixmap)
-        painter.fillRect(1, 1, 14, 14, QColor(color("FG")))
-        painter.fillRect(5, 5, 6, 6, QColor(color("BG")))
-        painter.end()
-        return QIcon(pixmap)
+            pixmap = QPixmap(16, 16)
+            pixmap.fill(QColor(color("BG")))
+            painter = QPainter(pixmap)
+            painter.fillRect(1, 1, 14, 14, QColor(color("FG")))
+            painter.fillRect(5, 5, 6, 6, QColor(color("BG")))
+            painter.end()
+            icon = QIcon(pixmap)
+        return icon
 
     def _setup_tray(self):
         self.tray = QSystemTrayIcon(self._make_tray_icon(), self)
@@ -449,11 +454,22 @@ class MainWindow(QMainWindow):
         event.accept()
 
 
+def _icon_path():
+    if getattr(sys, "frozen", False):
+        base = sys._MEIPASS
+    else:
+        base = os.path.join(os.path.dirname(__file__), "..")
+    ico = os.path.join(base, "assets", "duAI.ico")
+    png = os.path.join(base, "assets", "duAI.png")
+    return ico if os.path.exists(ico) else png
+
+
 def create_app(argv=None):
     argv = list(sys.argv if argv is None else argv)
     app = QApplication(argv)
     app.setApplicationName("duAI")
-    app.setWindowIcon(QIcon())
+    icon = QIcon(_icon_path())
+    app.setWindowIcon(icon)
     from .ui.theme import apply_theme
 
     apply_theme(app, get_settings().get("ui_mode") or "claro")
