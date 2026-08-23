@@ -24,15 +24,18 @@ class DashboardView(QWidget):
         logo_label = QLabel()
         logo_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
         import os, sys
+        from .theme import current_mode
         if getattr(sys, "frozen", False):
             base = sys._MEIPASS
         else:
             base = os.path.join(os.path.dirname(__file__), "..", "..")
-        for name in ("duAI.png", "duAI.ico"):
-            icon_path = os.path.join(base, "assets", name)
+        mode = current_mode()
+        name = "duAI_white.png" if mode == "oscuro" else "duAI.png"
+        for n in (name, "duAI.png"):
+            icon_path = os.path.join(base, "assets", n)
             if os.path.exists(icon_path):
                 pixmap = QPixmap(icon_path)
-                logo_label.setPixmap(pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+                logo_label.setPixmap(pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
                 break
         layout.addWidget(logo_label)
 

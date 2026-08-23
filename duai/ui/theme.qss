@@ -17,19 +17,6 @@ QMainWindow, QDialog {
     letter-spacing: 2px;
 }
 
-#brandTitle {
-    font-size: 34px;
-    font-weight: 300;
-    letter-spacing: 1px;
-}
-
-#brandSubtitle {
-    color: __SOFT__;
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 4px;
-}
-
 #sidebar {
     background: __BG__;
     border-right: 1px solid __LINE__;
@@ -40,6 +27,11 @@ QMainWindow, QDialog {
     font-size: 9px;
     font-weight: 600;
     letter-spacing: 2px;
+}
+
+#githubLink {
+    color: #888;
+    font-size: 9px;
 }
 
 #heroTitle {

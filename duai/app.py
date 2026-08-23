@@ -107,22 +107,10 @@ class MainWindow(QMainWindow):
         brand_box.setSpacing(4)
         brand_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        logo_label = QLabel()
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lp = _logo_path()
-        if lp and os.path.exists(lp):
-            pixmap = QPixmap(lp)
-            logo_label.setPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        brand_box.addWidget(logo_label)
-
-        brand = QLabel("duAI")
-        brand.setObjectName("brandTitle")
-        brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        subtitle = QLabel("DON'T USE AI")
-        subtitle.setObjectName("brandSubtitle")
-        subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        brand_box.addWidget(brand)
-        brand_box.addWidget(subtitle)
+        self._logo_label = QLabel()
+        self._logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._update_logo()
+        brand_box.addWidget(self._logo_label)
         side_layout.addLayout(brand_box)
         side_layout.addSpacing(24)
         self.nav_group = None
@@ -155,6 +143,12 @@ class MainWindow(QMainWindow):
         privacy_note.setObjectName("sideNote")
         privacy_note.setAlignment(Qt.AlignmentFlag.AlignCenter)
         side_layout.addWidget(privacy_note)
+
+        github_link = QLabel('<a href="https://github.com/Imandro/duAI" style="color:#888;text-decoration:none;">github.com/Imandro/duAI</a>')
+        github_link.setObjectName("githubLink")
+        github_link.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        github_link.setOpenExternalLinks(True)
+        side_layout.addWidget(github_link)
 
         body_layout.addWidget(sidebar)
 
@@ -251,6 +245,24 @@ class MainWindow(QMainWindow):
     def _theme_btn_label(self):
         return "MODO OSCURO" if get_settings().get("ui_mode") != "oscuro" else "MODO CLARO"
 
+    def _update_logo(self):
+        from .ui.theme import current_mode
+        mode = current_mode()
+        if mode == "oscuro":
+            name = "duAI_white.png"
+        else:
+            name = "duAI.png"
+        if getattr(sys, "frozen", False):
+            base = sys._MEIPASS
+        else:
+            base = os.path.join(os.path.dirname(__file__), "..")
+        path = os.path.join(base, "assets", name)
+        if not os.path.exists(path):
+            path = os.path.join(base, "assets", "duAI.png")
+        if os.path.exists(path) and hasattr(self, "_logo_label"):
+            pixmap = QPixmap(path)
+            self._logo_label.setPixmap(pixmap.scaled(120, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+
     def apply_ui_mode(self, mode):
         from PySide6.QtWidgets import QApplication
 
@@ -261,6 +273,7 @@ class MainWindow(QMainWindow):
             apply_theme(QApplication.instance(), mode)
             self.theme_btn.setText(self._theme_btn_label())
             self.tray.setIcon(self._make_tray_icon())
+            self._update_logo()
             if self._float_widget:
                 self._float_widget.setStyleSheet("")
 
