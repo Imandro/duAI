@@ -1,7 +1,8 @@
 import os
 import sys
+import time
 
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QMenu, QPushButton, QVBoxLayout, QWidget
 
@@ -18,10 +19,11 @@ class PanicFloatWidget(QWidget):
         )
         self.mw = main_window
         self.setObjectName("floatFrame")
-        size = get_settings().get("float_size") or 132
-        self.setFixedSize(size, size)
+        self._size = get_settings().get("float_size") or 160
+        self.setFixedSize(self._size, self._size)
         self._drag_offset = None
         self._moved = False
+        self._last_click = 0.0
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         layout = QVBoxLayout(self)
@@ -30,6 +32,7 @@ class PanicFloatWidget(QWidget):
         self.button = QPushButton()
         self.button.setObjectName("floatPanicBtn")
         self.button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.button.setFixedSize(self._size, self._size)
         self.button.clicked.connect(self._fire)
 
         if getattr(sys, "frozen", False):
@@ -39,12 +42,13 @@ class PanicFloatWidget(QWidget):
         icon_path = os.path.join(base, "assets", "panic_button.png")
         if os.path.exists(icon_path):
             pixmap = QPixmap(icon_path)
-            self.button.setIcon(pixmap.scaled(
-                size - 8, size - 8,
+            scaled = pixmap.scaled(
+                self._size, self._size,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation,
-            ))
-            self.button.setIconSize(self.button.sizeHint())
+            )
+            self.button.setIcon(scaled)
+            self.button.setIconSize(self.button.rect().size())
 
         layout.addWidget(self.button)
 
@@ -57,8 +61,12 @@ class PanicFloatWidget(QWidget):
             self.move(x, y)
 
     def _fire(self):
+        now = time.time()
+        if now - self._last_click < 2.0:
+            return
         if self._moved:
             return
+        self._last_click = now
         self.mw.trigger_panic()
 
     def _menu(self, pos):
@@ -84,7 +92,7 @@ class PanicFloatWidget(QWidget):
     def mouseMoveEvent(self, event):
         if self._drag_offset is not None and event.buttons() & Qt.MouseButton.LeftButton:
             delta = (event.globalPosition().toPoint() - self.frameGeometry().topLeft())
-            if (delta.x() ** 2 + delta.y() ** 2) > 9:
+            if (delta.x() ** 2 + delta.y() ** 2) > 25:
                 self._moved = True
                 self.move(event.globalPosition().toPoint() - self._drag_offset)
         super().mouseMoveEvent(event)

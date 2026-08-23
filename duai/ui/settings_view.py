@@ -209,9 +209,9 @@ class SettingsView(QWidget):
         size_label.setObjectName("microLabel")
         size_row.addWidget(size_label)
         self.float_size = QSpinBox()
-        self.float_size.setRange(80, 300)
+        self.float_size.setRange(100, 300)
         self.float_size.setSingleStep(10)
-        current = get_settings().get("float_size") or 132
+        current = get_settings().get("float_size") or 160
         self.float_size.setValue(current)
         self.float_size.setSuffix(" px")
         self.float_size.valueChanged.connect(self._change_float_size)
