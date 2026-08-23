@@ -101,6 +101,27 @@ class PanicWidget(QWidget):
         auto_row.addWidget(self.hotkey_check)
         layout.addLayout(auto_row)
 
+        widget_row = QHBoxLayout()
+        float_label = QLabel("BOTON FLOTANTE")
+        float_label.setObjectName("microLabel")
+        self.float_check = QCheckBox("ACTIVAR WIDGET EN PANTALLA")
+        self.float_check.setChecked(bool(settings.get("float_visible")))
+        self.float_check.toggled.connect(self._save_float)
+        size_label = QLabel("TAMANO")
+        size_label.setObjectName("microLabel")
+        self.float_size = QSpinBox()
+        self.float_size.setRange(80, 300)
+        self.float_size.setSingleStep(10)
+        self.float_size.setValue(settings.get("float_size") or 132)
+        self.float_size.setSuffix(" px")
+        self.float_size.valueChanged.connect(self._save_float_size)
+        widget_row.addWidget(float_label)
+        widget_row.addWidget(self.float_check)
+        widget_row.addStretch(1)
+        widget_row.addWidget(size_label)
+        widget_row.addWidget(self.float_size)
+        layout.addLayout(widget_row)
+
         self.result_view = QTextEdit()
         self.result_view.setReadOnly(True)
         layout.addWidget(self.result_view, 1)
@@ -170,3 +191,15 @@ class PanicWidget(QWidget):
     def _save_hotkey(self, state):
         get_settings().set("hotkey_enabled", bool(state))
         self.mw.restart_hotkey()
+
+    def _save_float(self, state):
+        get_settings().set("float_visible", bool(state))
+        if state:
+            self.mw.show_panic_float()
+        else:
+            self.mw.hide_panic_float()
+
+    def _save_float_size(self, value):
+        get_settings().set("float_size", value)
+        if self.mw._float_widget:
+            self.mw._float_widget.setFixedSize(value, value)

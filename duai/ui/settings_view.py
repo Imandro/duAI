@@ -8,6 +8,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QScrollArea,
     QFrame,
+    QSpinBox,
     QVBoxLayout,
     QWidget,
 )
@@ -207,7 +208,6 @@ class SettingsView(QWidget):
         size_label = QLabel("TAMANO")
         size_label.setObjectName("microLabel")
         size_row.addWidget(size_label)
-        from PySide6.QtWidgets import QSpinBox
         self.float_size = QSpinBox()
         self.float_size.setRange(80, 300)
         self.float_size.setSingleStep(10)

@@ -1,4 +1,8 @@
+import os
+import sys
+
 from PySide6.QtCore import Qt, QPoint
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QMenu, QPushButton, QVBoxLayout, QWidget
 
 from ..utils.settings import get_settings
@@ -18,13 +22,30 @@ class PanicFloatWidget(QWidget):
         self.setFixedSize(size, size)
         self._drag_offset = None
         self._moved = False
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        self.button = QPushButton("PANICO")
-        self.button.setObjectName("floatPanic")
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self.button = QPushButton()
+        self.button.setObjectName("floatPanicBtn")
         self.button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.button.clicked.connect(self._fire)
+
+        if getattr(sys, "frozen", False):
+            base = sys._MEIPASS
+        else:
+            base = os.path.join(os.path.dirname(__file__), "..", "..")
+        icon_path = os.path.join(base, "assets", "panic_button.png")
+        if os.path.exists(icon_path):
+            pixmap = QPixmap(icon_path)
+            self.button.setIcon(pixmap.scaled(
+                size - 8, size - 8,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation,
+            ))
+            self.button.setIconSize(self.button.sizeHint())
+
         layout.addWidget(self.button)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
