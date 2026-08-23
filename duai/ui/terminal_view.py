@@ -68,7 +68,7 @@ class TerminalView(QWidget):
         self.output = QPlainTextEdit()
         self.output.setReadOnly(True)
         self.output.setObjectName("terminalOutput")
-        self.output.setMaximumBlockLines(5000)
+        self.output.setMaximumBlockCount(5000)
         layout.addWidget(self.output, 1)
 
         input_row = QHBoxLayout()
