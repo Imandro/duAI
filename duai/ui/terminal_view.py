@@ -1,7 +1,8 @@
 import os
+import re
 import threading
 
-from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -12,6 +13,12 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+_ANSI_RE = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]|\x1b\][^\x07]*\x07|\x1b[()][AB012]')
+
+
+def _strip_ansi(text):
+    return _ANSI_RE.sub('', text)
 
 
 class _PtyReader(threading.Thread):
@@ -29,6 +36,8 @@ class _PtyReader(threading.Thread):
                     self.callback(data)
                 else:
                     break
+            except EOFError:
+                break
             except Exception:
                 break
 
@@ -42,6 +51,8 @@ class TerminalView(QWidget):
         self.mw = main_window
         self._pty = None
         self._reader = None
+        self._pending = ""
+        self._pending_lock = threading.Lock()
         self._history = []
         self._history_index = -1
         self._cli_session = None
@@ -87,7 +98,6 @@ class TerminalView(QWidget):
 
         status_row = QHBoxLayout()
         self.session_status = QLabel("")
-        self.session_status.setObjectName("cliSessionStatus")
         self.session_status.setObjectName("cliSessionIdle")
         status_row.addWidget(self.session_status)
         status_row.addStretch(1)
@@ -102,6 +112,10 @@ class TerminalView(QWidget):
         self.output.setReadOnly(True)
         self.output.setObjectName("terminalOutput")
         self.output.setMaximumBlockCount(5000)
+        font = self.output.font()
+        font.setFamily("Consolas")
+        font.setPointSize(10)
+        self.output.setFont(font)
         layout.addWidget(self.output, 1)
 
         input_row = QHBoxLayout()
@@ -127,14 +141,13 @@ class TerminalView(QWidget):
         self._poll_timer.setInterval(30)
 
         self._start_pty()
-        self._append_line("[Terminal PTY iniciado — PowerShell listo]\n")
+        self._append_text("[Terminal listo]\n")
 
     def _start_pty(self, env=None, cwd=None):
         try:
             from winpty.ptyprocess import PtyProcess
-            cmd = "powershell.exe"
             self._pty = PtyProcess.spawn(
-                cmd,
+                "powershell.exe",
                 cwd=cwd or os.path.expandvars("%USERPROFILE%"),
                 env=env or os.environ.copy(),
                 dimensions=(40, 120),
@@ -143,18 +156,18 @@ class TerminalView(QWidget):
             self._reader.start()
             self._poll_timer.start()
         except ImportError:
-            self._append_line("[ERROR] pywinpty no instalado — instala con: pip install pywinpty\n")
+            self._append_text("[ERROR] pywinpty no instalado\n")
         except Exception as exc:
-            self._append_line(f"[ERROR] No se pudo iniciar PTY: {exc}\n")
+            self._append_text(f"[ERROR] PTY: {exc}\n")
 
     def _launch_tool(self, tool_id):
-        from ..core.cli_session import CLISession, CLI_TOOLS, _create_sandbox, _build_env
+        from ..core.cli_session import CLI_TOOLS, _create_sandbox, _build_env
 
         tool = CLI_TOOLS.get(tool_id)
         if not tool:
             return
 
-        cwd = QFileDialog.getExistingDirectory(self, f"Seleccionar carpeta para {tool['name']}")
+        cwd = QFileDialog.getExistingDirectory(self, f"Carpeta para {tool['name']}")
         if not cwd:
             cwd = os.path.expandvars("%USERPROFILE%")
 
@@ -163,9 +176,9 @@ class TerminalView(QWidget):
 
         self._stop_pty()
         self.output.clear()
-        self._append_line(f"[Sesión segura: {tool['name']}] Carpeta: {cwd}\n")
-        self._append_line(f"[Sandbox: {sandbox}]\n")
-        self._append_line(f"[Todo lo que escribas queda aislado. Al salir se borrará automáticamente.]\n\n")
+        self._append_text(f"[Sesion segura: {tool['name']}] Carpeta: {cwd}\n")
+        self._append_text(f"[Sandbox: {sandbox}]\n")
+        self._append_text("[Al salir se borrara automaticamente.]\n\n")
 
         self._start_pty(env=env, cwd=cwd)
 
@@ -175,7 +188,7 @@ class TerminalView(QWidget):
             "is_running": True,
         })()
 
-        self.session_status.setText(f"SESIÓN ACTIVA: {tool['name'].upper()}")
+        self.session_status.setText(f"ACTIVA: {tool['name'].upper()}")
         self.session_status.setObjectName("cliSessionActive")
         self.session_status.style().unpolish(self.session_status)
         self.session_status.style().polish(self.session_status)
@@ -203,31 +216,37 @@ class TerminalView(QWidget):
             self.stop_btn.setVisible(False)
             for btn in self._tool_btns.values():
                 btn.setEnabled(True)
-            self._append_line("\n[Sesión terminada — rastros eliminados]\n")
+            self._append_text("\n[Sesion terminada — rastros eliminados]\n")
             self._start_pty()
 
     def _stop_pty(self):
+        self._poll_timer.stop()
         if self._reader:
             self._reader.stop()
+            self._reader = None
         if self._pty:
             try:
-                self._pty.kill(0)
+                self._pty.close(force=True)
             except Exception:
                 try:
-                    self._pty.terminate(0)
+                    self._pty.terminate(force=True)
                 except Exception:
                     pass
-            self._poll_timer.stop()
             self._pty = None
-            self._reader = None
+        with self._pending_lock:
+            self._pending = ""
 
     def _on_data(self, data):
-        self._pending = getattr(self, "_pending", "") + data
+        clean = _strip_ansi(data)
+        if clean:
+            with self._pending_lock:
+                self._pending += clean
 
     def _poll(self):
-        pending = getattr(self, "_pending", "")
-        if pending:
+        with self._pending_lock:
+            pending = self._pending
             self._pending = ""
+        if pending:
             self._append_text(pending)
 
     def _append_text(self, text):
@@ -238,9 +257,6 @@ class TerminalView(QWidget):
         self.output.ensureCursorVisible()
         sb = self.output.verticalScrollBar()
         sb.setValue(sb.maximum())
-
-    def _append_line(self, text):
-        self._append_text(text)
 
     def eventFilter(self, obj, event):
         if obj is self.input and event.type() == event.Type.KeyPress:
@@ -255,7 +271,7 @@ class TerminalView(QWidget):
                 if self._cli_session:
                     self._stop_session()
                 else:
-                    self._kill()
+                    self._send_ctrl_c()
                 return True
         return super().eventFilter(obj, event)
 
@@ -291,19 +307,19 @@ class TerminalView(QWidget):
             return
 
         if self._pty:
-            self._pty.write(text.encode() + b"\r\n")
+            try:
+                self._pty.write(text + "\r\n")
+            except EOFError:
+                self._append_text("[Sesion cerrada]\n")
         else:
-            self._append_line(f"PS> {text}\n")
+            self._append_text(f"PS> {text}\n")
 
-    def _kill(self):
+    def _send_ctrl_c(self):
         if self._pty:
             try:
-                self._pty.kill(0)
-            except Exception:
+                self._pty.write("\x03")
+            except EOFError:
                 pass
-            self._poll_timer.stop()
-            self._append_line("\n[Proceso interrumpido]\n")
-            self._start_pty()
 
     def _clear(self):
         self.output.clear()
@@ -316,11 +332,5 @@ class TerminalView(QWidget):
         if self._cli_session:
             from ..core.cli_session import stop_session
             stop_session()
-        if self._reader:
-            self._reader.stop()
-        if self._pty:
-            try:
-                self._pty.kill(0)
-            except Exception:
-                pass
+        self._stop_pty()
         super().closeEvent(event)
