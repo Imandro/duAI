@@ -77,7 +77,7 @@ def clear_clipboard():
         deleted_history = False
         if hasattr(user32, "DeleteClipboardHistory"):
             deleted_history = bool(user32.DeleteClipboardHistory(None))
-        return True or deleted_history
+        return deleted_history or True
     finally:
         user32.CloseClipboard()
 

@@ -284,6 +284,32 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
     border-top: 1px solid __LINE__;
 }
 
+#terminalOutput {
+    background: __BG__;
+    color: __FG__;
+    border: 1px solid __LINE__;
+    font-family: "Consolas";
+    font-size: 12px;
+    selection-background-color: __FG__;
+    selection-color: __BG__;
+}
+
+#terminalInput {
+    background: __BG__;
+    color: __FG__;
+    border: 1px solid __LINE__;
+    caret-color: __FG__;
+    font-family: "Consolas";
+    font-size: 13px;
+    padding: 8px 4px;
+    selection-background-color: __FG__;
+    selection-color: __BG__;
+}
+
+#terminalInput:focus {
+    border: 1px solid __FG__;
+}
+
 #floatFrame {
     background: __BG__;
     border: 2px solid __FG__;

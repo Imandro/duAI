@@ -127,7 +127,8 @@ class PanicWidget(QWidget):
             return False
         self._pulse.stop()
         mode = next(
-            radio.property("mode") for radio in self.mode_group.buttons() if radio.isChecked()
+            (radio.property("mode") for radio in self.mode_group.buttons() if radio.isChecked()),
+            "recycle",
         )
         self.panic_btn.setEnabled(False)
         self.panic_btn.setText("LIMPIANDO...")

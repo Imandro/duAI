@@ -1,4 +1,5 @@
 from .cleaner import CleanOptions, run_clean
+from .browser_tabs import close_ai_tabs
 from .scanner import scan_targets
 from ..utils.logger import log
 from ..utils.paths import is_admin
@@ -18,6 +19,9 @@ def perform_panic(progress=None, permanent=None, mode=None):
     settings = get_settings()
     clean_mode = mode if mode in _VALID_MODES else _panic_mode(settings, permanent)
 
+    tab_report = close_ai_tabs()
+    tabs_closed = tab_report.get("closed", 0)
+
     admin = is_admin()
     targets = build_safe_targets(settings, admin)
     report = scan_targets(targets)
@@ -29,8 +33,9 @@ def perform_panic(progress=None, permanent=None, mode=None):
 
     options = CleanOptions(selected=selected, mode=clean_mode, preview=False)
     result = run_clean(report, options)
+    result.tabs_closed = tabs_closed
     log("panic", removed=result.removed_items, freed_bytes=result.freed_bytes,
-        errors=result.errors, mode=clean_mode)
+        errors=result.errors, mode=clean_mode, tabs_closed=tabs_closed)
     if progress:
         progress(result)
     return result
@@ -69,5 +74,8 @@ def perform_silent_clean(permanent=True, progress=None, mode=None):
 
 def format_result_summary(result):
     lines = [result.summary(), ""]
+    tabs = getattr(result, "tabs_closed", 0)
+    if tabs:
+        lines.append(f"PESTAÑAS DE IA CERRADAS: {tabs}")
     lines.extend(result.lines)
     return "\n".join(lines)

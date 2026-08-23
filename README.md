@@ -77,6 +77,8 @@ Escribi comandos directamente en la parte inferior de la ventana:
 > panico
 > tema oscuro
 > widget si
+> cerrarpestañas --confirmar
+> terminal dir
 > apps
 > desinstalar ollama --confirmar
 ```
@@ -93,6 +95,7 @@ Escribi comandos directamente en la parte inferior de la ventana:
 | **SESION** | Navegacion IA en perfil temporal destruido al cerrar |
 | **PANICO** | Limpieza total silenciosa con destino configurable |
 | **AJUSTES** | Contrasena, exclusiones, modo sigilo, cuarentena, hosts, programador |
+| **TERMINAL** | Consola del sistema integrada — ejecuta comandos directamente |
 
 ---
 

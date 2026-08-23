@@ -1,3 +1,5 @@
+import os
+
 from PySide6.QtCore import Qt, QEvent
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -7,6 +9,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core import reporter, session as session_core
+from ..core.browser_tabs import close_ai_tabs, detect_cdp_browsers, find_ai_tabs
 from ..core.cleaner import CleanOptions
 from ..core.panic import perform_panic
 from ..core.quarantine import purge_quarantine, quarantined_items, restore_all
@@ -143,6 +146,8 @@ class CommandRouter:
             "PANICO                 limpieza total silenciosa",
             "SESION <sitio>         chatgpt claude gemini perplexity copilot poe deepseek (perfil temporal)",
             "CERRARSESION           destruye la sesion protegida activa",
+            "CERRARPESTAÑAS         cierra pestañas de IA en navegadores Chromium (--confirmar)",
+            "TERMINAL [comando]     abre la terminal integrada o ejecuta un comando",
             "APPS                   lista apps de IA instaladas en el sistema",
             "DESINSTALAR <app>      --confirmar para ejecutar; sin ella solo muestra el comando",
             "EXPORTAR txt|csv       guarda el ultimo escaneo en el escritorio",
@@ -203,6 +208,37 @@ class CommandRouter:
         for browser_id, path in found:
             self.out(f"  {browser_id:<8} {path}")
 
+    def cmd_cerrarpestañas(self, args, flags):
+        browsers = detect_cdp_browsers()
+        if not browsers:
+            self.out("No se detectaron navegadores Chromium corriendo.")
+            return
+        ai_info = find_ai_tabs(browsers)
+        has_ai = any(info["ai_tabs"] for info in ai_info)
+        if not has_ai:
+            self.out("No hay pestañas de IA abiertas.")
+            for info in ai_info:
+                note = info.get("note", f'{len(info.get("ai_tabs", []))} pestañas IA')
+                self.out(f"  {info['browser']}: {note}")
+            return
+        for info in ai_info:
+            tabs = info.get("ai_tabs", [])
+            note = info.get("note", "")
+            if tabs:
+                self.out(f"  {info['browser']}: {len(tabs)} pestañas de IA")
+                for tab in tabs:
+                    self.out(f"    - {tab['title'][:60]}  ({tab['url']})")
+            elif note:
+                self.out(f"  {info['browser']}: {note}")
+        if "--confirmar" in flags or "confirmar" in flags:
+            report = close_ai_tabs(browsers)
+            self.out(f"Pestañas cerradas: {report['closed']}")
+            for b in report["browsers"]:
+                note = b.get("note", f'{b["closed"]} cerradas')
+                self.out(f"  {b['browser']}: {note}")
+        else:
+            self.out("Anade --confirmar para cerrar las pestañas de IA.")
+
     # ---------------- acciones principales ----------------
 
     def cmd_escanear(self, args, flags):
@@ -252,6 +288,11 @@ class CommandRouter:
         self.mw.navigate(3)
         ok, message = self.mw.session_view.stop_action()
         self.out(message)
+
+    def cmd_terminal(self, args, flags):
+        self.mw.navigate(6)
+        if args:
+            self.mw.terminal_view.run_command(" ".join(args))
 
     # ---------------- desinstalacion avanzada ----------------
 

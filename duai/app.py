@@ -35,6 +35,7 @@ from .ui.panic_widget import PanicWidget
 from .ui.scan_view import ScanView
 from .ui.settings_view import SettingsView
 from .ui.session_view import SessionView
+from .ui.terminal_view import TerminalView
 from .utils.settings import get_settings
 
 
@@ -70,7 +71,7 @@ class LoginDialog(QDialog):
 
 
 class MainWindow(QMainWindow):
-    NAV = ["RESUMEN", "ESCANEO", "LIMPIEZA", "SESION", "PANICO", "AJUSTES"]
+    NAV = ["RESUMEN", "ESCANEO", "LIMPIEZA", "SESION", "PANICO", "AJUSTES", "TERMINAL"]
 
     def __init__(self):
         super().__init__()
@@ -154,6 +155,7 @@ class MainWindow(QMainWindow):
         self.session_view = SessionView(self)
         self.panic_widget = PanicWidget(self)
         self.settings_view = SettingsView(self)
+        self.terminal_view = TerminalView(self)
         for view in (
             self.dashboard_view,
             self.scan_view,
@@ -161,6 +163,7 @@ class MainWindow(QMainWindow):
             self.session_view,
             self.panic_widget,
             self.settings_view,
+            self.terminal_view,
         ):
             self.stack.addWidget(view)
 
@@ -290,12 +293,13 @@ class MainWindow(QMainWindow):
     def run_cli_worker(self, job, on_done, busy_note="PROCESANDO..."):
         from .ui.worker import Worker
 
+        self._cli_workers = getattr(self, "_cli_workers", [])
         worker = Worker(job)
         worker.done.connect(on_done)
         worker.failed.connect(lambda message: self.cli_output(f"[ERROR] {message}"))
+        worker.finished.connect(lambda: self._cli_workers.remove(worker) if worker in self._cli_workers else None)
         worker.setParent(self)
         worker.start()
-        self._cli_workers = getattr(self, "_cli_workers", [])
         self._cli_workers.append(worker)
 
     # ---------------- bandeja / hotkey / timer ----------------
@@ -396,13 +400,23 @@ class MainWindow(QMainWindow):
 
     def _auto_clean_tick(self):
         from .core.panic import perform_silent_clean
+        from .ui.worker import Worker
 
-        result = perform_silent_clean()
-        self.session_freed_bytes += result.freed_bytes
-        self.dashboard_view.refresh_stats()
-        self.tray.showMessage(
-            "duAI", "Auto-limpieza completada.", QSystemTrayIcon.MessageIcon.NoIcon, 3000
-        )
+        def job():
+            return perform_silent_clean()
+
+        def done(result):
+            self.session_freed_bytes += result.freed_bytes
+            self.dashboard_view.refresh_stats()
+            self.tray.showMessage(
+                "duAI", "Auto-limpieza completada.", QSystemTrayIcon.MessageIcon.NoIcon, 3000
+            )
+
+        worker = Worker(job)
+        worker.done.connect(done)
+        worker.failed.connect(lambda msg: None)
+        worker.setParent(self)
+        worker.start()
 
     def closeEvent(self, event):
         settings = get_settings()
@@ -412,9 +426,19 @@ class MainWindow(QMainWindow):
             stop_session()
         if settings.get("auto_clean_on_exit"):
             from .core.panic import perform_silent_clean
+            from .ui.worker import Worker
 
-            result = perform_silent_clean()
-            self.session_freed_bytes += result.freed_bytes
+            def job():
+                return perform_silent_clean()
+
+            def done(result):
+                self.session_freed_bytes += result.freed_bytes
+
+            worker = Worker(job)
+            worker.done.connect(done)
+            worker.setParent(self)
+            worker.start()
+            worker.wait(2000)
         if settings.get("self_purge_on_exit"):
             from .core.selfclean import purge_logs, purge_own_recent_links
 

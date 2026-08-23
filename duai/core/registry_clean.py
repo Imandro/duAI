@@ -1,25 +1,7 @@
 import codecs
 import os
 
-MARKERS = [
-    "chatgpt",
-    "openai",
-    "claude",
-    "anthropic",
-    "copilot",
-    "cursor",
-    "ollama",
-    "windsurf",
-    "codeium",
-    "lm studio",
-    "lm-studio",
-    "gpt4all",
-    "nomic.ai",
-    "perplexity",
-    "gemini",
-    "deepseek",
-    "mistral",
-]
+from .targets import AI_MARKERS as MARKERS
 
 _EXPLORER_ROOT = r"Software\Microsoft\Windows\CurrentVersion\Explorer"
 KEYS_AI_FILTERED = {

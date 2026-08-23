@@ -5,6 +5,26 @@ from dataclasses import dataclass, field
 
 from ..utils.paths import expand
 
+AI_MARKERS = [
+    "chatgpt",
+    "openai",
+    "claude",
+    "anthropic",
+    "copilot",
+    "cursor",
+    "ollama",
+    "windsurf",
+    "codeium",
+    "lm studio",
+    "lm-studio",
+    "gpt4all",
+    "nomic.ai",
+    "perplexity",
+    "gemini",
+    "deepseek",
+    "mistral",
+]
+
 
 def catalog_path():
     if getattr(sys, "frozen", False):
@@ -124,7 +144,3 @@ def list_all_entries():
              "category": "Navegador"}
         )
     return entries
-
-
-def expand_first(path):
-    return expand(path)

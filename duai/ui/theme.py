@@ -47,8 +47,11 @@ def color(key):
 def render_css(mode):
     palette = PALETTES.get(mode, PALETTES["claro"])
     qss_path = os.path.join(THEME_DIR, "theme.qss")
-    with open(qss_path, "r", encoding="utf-8") as fh:
-        template = fh.read()
+    try:
+        with open(qss_path, "r", encoding="utf-8") as fh:
+            template = fh.read()
+    except FileNotFoundError:
+        template = "* { background: __BG__; color: __FG__; font-family: 'Segoe UI'; font-size: 13px; }"
     css = template
     for key, value in palette.items():
         css = css.replace("__" + key + "__", value)

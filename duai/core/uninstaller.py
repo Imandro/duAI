@@ -2,25 +2,7 @@ import os
 import shutil
 import subprocess
 
-MARKERS = [
-    "chatgpt",
-    "openai",
-    "claude",
-    "anthropic",
-    "copilot",
-    "cursor",
-    "ollama",
-    "windsurf",
-    "codeium",
-    "lm studio",
-    "lm-studio",
-    "gpt4all",
-    "nomic.ai",
-    "perplexity",
-    "gemini",
-    "deepseek",
-    "mistral",
-]
+from .targets import AI_MARKERS as MARKERS
 
 UNINSTALL_KEYS = [
     ("HKCU", r"Software\Microsoft\Windows\CurrentVersion\Uninstall"),

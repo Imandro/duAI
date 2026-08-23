@@ -31,15 +31,6 @@ def diff_reports(before, after):
     return lines
 
 
-def save_diff_txt(before, after, out_path):
-    lines = ["duAI - Comparacion antes / despues", "=" * 34,
-             f"Antes : {before.scanned_at}", f"Despues: {after.scanned_at}", ""]
-    lines.extend(diff_reports(before, after))
-    with open(out_path, "w", encoding="utf-8") as fh:
-        fh.write("\n".join(lines))
-    return out_path
-
-
 def save_report_txt(report, out_path, title="duAI - Reporte de escaneo"):
     lines = [title, "=" * len(title), f"Fecha: {report.scanned_at}", ""]
     for entry in report.entries:
