@@ -1,0 +1,305 @@
+* {
+    background: __BG__;
+    color: __FG__;
+    font-family: "Segoe UI";
+    font-size: 13px;
+    outline: none;
+}
+
+QMainWindow, QDialog {
+    background: __BG__;
+}
+
+#microLabel {
+    color: __SOFT__;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+#brandTitle {
+    font-size: 34px;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+#brandSubtitle {
+    color: __SOFT__;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 4px;
+}
+
+#sidebar {
+    background: __BG__;
+    border-right: 1px solid __LINE__;
+}
+
+#sideNote {
+    color: __SOFT__;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+#heroTitle {
+    font-size: 30px;
+    font-weight: 300;
+}
+
+#heroBody {
+    color: __BODY__;
+    font-size: 12px;
+    line-height: 150%;
+}
+
+#statNumber {
+    font-size: 26px;
+    font-weight: 300;
+}
+
+QPushButton {
+    background: __BG__;
+    border: 1px solid __FG__;
+    padding: 10px 18px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+QPushButton:hover {
+    background: __FG__;
+    color: __BG__;
+}
+
+QPushButton:pressed {
+    background: __FG__;
+    color: __BG__;
+}
+
+QPushButton:disabled {
+    border-color: __SOFT__;
+    color: __SOFT__;
+    background: __BG__;
+}
+
+#navButton {
+    background: transparent;
+    border: none;
+    border-left: 2px solid transparent;
+    padding: 14px 20px;
+    text-align: left;
+    letter-spacing: 3px;
+    font-weight: 500;
+    color: __FG__;
+}
+
+#navButton:hover {
+    background: __HOVER__;
+    color: __FG__;
+}
+
+#navButton:checked {
+    background: __FG__;
+    color: __BG__;
+    border-left: 2px solid __FG__;
+}
+
+#panicButton {
+    background: __FG__;
+    color: __BG__;
+    border: 1px solid __FG__;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 10px;
+    padding: 48px 0px;
+}
+
+#panicButton:hover {
+    background: __BG__;
+    color: __FG__;
+}
+
+#lineEdit, QSpinBox {
+    border: 1px solid __LINE__;
+    padding: 8px 10px;
+    background: __BG__;
+    selection-background-color: __FG__;
+    selection-color: __BG__;
+}
+
+#lineEdit:focus, QSpinBox:focus {
+    border: 1px solid __FG__;
+}
+
+QTableWidget {
+    border: 1px solid __LINE__;
+    gridline-color: __GRID__;
+    selection-background-color: __FG__;
+    selection-color: __BG__;
+    alternate-background-color: __ALT__;
+}
+
+QHeaderView::section {
+    background: __BG__;
+    border: none;
+    border-bottom: 1px solid __FG__;
+    padding: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+}
+
+QCheckBox, QRadioButton {
+    spacing: 10px;
+    font-size: 12px;
+}
+
+QCheckBox::indicator, QRadioButton::indicator {
+    width: 14px;
+    height: 14px;
+    border: 1px solid __FG__;
+    background: __BG__;
+}
+
+QRadioButton::indicator {
+    border-radius: 7px;
+}
+
+QCheckBox::indicator:checked, QRadioButton::indicator:checked {
+    background: __FG__;
+}
+
+QTextEdit {
+    border: 1px solid __LINE__;
+    font-family: "Consolas";
+    font-size: 11px;
+    selection-background-color: __FG__;
+    selection-color: __BG__;
+}
+
+QScrollBar:vertical {
+    background: __BG__;
+    width: 6px;
+}
+
+QScrollBar::handle:vertical {
+    background: __HANDLE__;
+    min-height: 30px;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::sub-page {
+    height: 0px;
+    width: 0px;
+    background: none;
+}
+
+#divider {
+    background-color: __FG__;
+    max-height: 1px;
+    border: none;
+}
+
+#statusBar {
+    background: __BG__;
+    border-top: 1px solid __LINE__;
+}
+
+#barLabel {
+    color: __SOFT__;
+    font-size: 10px;
+    letter-spacing: 2px;
+}
+
+#cliBar {
+    background: __BG__;
+    border-top: 1px solid __LINE__;
+}
+
+#promptMark {
+    font-family: "Consolas";
+    font-size: 15px;
+    font-weight: 700;
+    color: __FG__;
+    background: transparent;
+}
+
+#cliInput {
+    background: __BG__;
+    color: __FG__;
+    border: none;
+    caret-color: __FG__;
+    font-family: "Consolas";
+    font-size: 13px;
+    padding: 6px 2px;
+    selection-background-color: __FG__;
+    selection-color: __BG__;
+}
+
+#cliInput::placeholder {
+    color: __SOFT__;
+}
+
+#cliOutput {
+    background: __BG__;
+    color: __FG__;
+    border: none;
+    font-family: "Consolas";
+    font-size: 12px;
+    selection-background-color: __FG__;
+    selection-color: __BG__;
+}
+
+#cliTitle {
+    color: __SOFT__;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    background: transparent;
+}
+
+#cliHide {
+    background: transparent;
+    color: __SOFT__;
+    border: 1px solid __LINE__;
+    padding: 2px 10px;
+    letter-spacing: 1px;
+}
+
+#cliHide:hover {
+    background: __FG__;
+    color: __BG__;
+    border-color: __FG__;
+}
+
+#hintLabel {
+    color: __SOFT__;
+    font-size: 9px;
+    letter-spacing: 2px;
+}
+
+#sectionFrame {
+    border: none;
+    border-top: 1px solid __LINE__;
+}
+
+#floatFrame {
+    background: __BG__;
+    border: 2px solid __FG__;
+}
+
+#floatPanic {
+    background: __FG__;
+    color: __BG__;
+    border: none;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    padding: 0px;
+}
+
+#floatPanic:hover {
+    background: __BG__;
+    color: __FG__;
+}

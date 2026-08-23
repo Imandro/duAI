@@ -1,0 +1,216 @@
+{
+  "version": 1,
+  "domains": [
+    "chatgpt.com",
+    "openai.com",
+    "claude.ai",
+    "anthropic.com",
+    "gemini.google.com",
+    "aistudio.google.com",
+    "perplexity.ai",
+    "copilot.microsoft.com",
+    "poe.com",
+    "character.ai",
+    "deepseek.com",
+    "mistral.ai",
+    "grok.com"
+  ],
+  "categories": [
+    {
+      "id": "apps",
+      "name": "Aplicaciones de IA",
+      "description": "Rastros locales de aplicaciones de escritorio con IA",
+      "targets": [
+        {
+          "id": "chatgpt_app",
+          "name": "ChatGPT",
+          "vendor": "OpenAI",
+          "paths": ["%APPDATA%/ChatGPT"],
+          "processes": ["ChatGPT.exe"]
+        },
+        {
+          "id": "claude_app",
+          "name": "Claude Desktop",
+          "vendor": "Anthropic",
+          "paths": ["%APPDATA%/Claude"],
+          "processes": ["claude.exe"]
+        },
+        {
+          "id": "copilot_win",
+          "name": "Copilot de Windows",
+          "vendor": "Microsoft",
+          "paths": [
+            "%LOCALAPPDATA%/Packages/Microsoft.Copilot_8wekyb3d8bbwe/LocalCache",
+            "%LOCALAPPDATA%/Packages/Microsoft.Copilot_8wekyb3d8bbwe/AC"
+          ],
+          "processes": []
+        },
+        {
+          "id": "cursor",
+          "name": "Cursor",
+          "vendor": "Anysphere",
+          "paths": [
+            "%APPDATA%/Cursor/User/workspaceStorage/*/state.vscdb",
+            "%APPDATA%/Cursor/User/globalStorage/state.vscdb",
+            "%APPDATA%/Cursor/Cache",
+            "%APPDATA%/Cursor/logs"
+          ],
+          "processes": ["Cursor.exe"]
+        },
+        {
+          "id": "windsurf",
+          "name": "Windsurf",
+          "vendor": "Codeium",
+          "paths": [
+            "%USERPROFILE%/.codeium/windsurf",
+            "%APPDATA%/Windsurf/User/workspaceStorage"
+          ],
+          "processes": ["Windsurf.exe"]
+        },
+        {
+          "id": "ollama",
+          "name": "Ollama",
+          "vendor": "Ollama",
+          "paths": [
+            "%USERPROFILE%/.ollama/history",
+            "%USERPROFILE%/.ollama/id_ed25519",
+            "%LOCALAPPDATA%/Ollama/logs"
+          ],
+          "processes": ["ollama.exe", "ollama app.exe"]
+        },
+        {
+          "id": "lmstudio",
+          "name": "LM Studio",
+          "vendor": "LM Studio",
+          "paths": [
+            "%USERPROFILE%/.cache/lm-studio/server-logs",
+            "%USERPROFILE%/.lmstudio/server-logs"
+          ],
+          "processes": ["LM Studio.exe"]
+        },
+        {
+          "id": "gpt4all",
+          "name": "GPT4All",
+          "vendor": "Nomic AI",
+          "paths": ["%LOCALAPPDATA%/nomic.ai/GPT4All"],
+          "processes": ["gpt4all.exe"]
+        },
+        {
+          "id": "perplexity_app",
+          "name": "Perplexity",
+          "vendor": "Perplexity AI",
+          "paths": ["%APPDATA%/Perplexity"],
+          "processes": ["Perplexity.exe"]
+        }
+      ]
+    },
+    {
+      "id": "system",
+      "name": "Sistema",
+      "description": "Rastros del sistema operativo relacionados con uso de IA",
+      "targets": [
+        {
+          "id": "temp_files",
+          "name": "Archivos temporales",
+          "vendor": "",
+          "paths": ["%LOCALAPPDATA%/Temp/*"],
+          "processes": []
+        },
+        {
+          "id": "recent_items",
+          "name": "Documentos recientes y Jump Lists",
+          "vendor": "",
+          "paths": [
+            "%APPDATA%/Microsoft/Windows/Recent/*.lnk",
+            "%APPDATA%/Microsoft/Windows/Recent/AutomaticDestinations/*",
+            "%APPDATA%/Microsoft/Windows/Recent/CustomDestinations/*"
+          ],
+          "processes": []
+        },
+        {
+          "id": "timeline_db",
+          "name": "Cronologia de actividades de Windows",
+          "vendor": "",
+          "kind_action": "timeline",
+          "paths": [],
+          "processes": []
+        },
+        {
+          "id": "location_history",
+          "name": "Historial de ubicacion de Windows",
+          "vendor": "",
+          "kind_action": "location",
+          "paths": [],
+          "processes": []
+        },
+        {
+          "id": "prefetch_ai",
+          "name": "Prefetch de apps de IA",
+          "vendor": "",
+          "paths": ["C:/Windows/Prefetch/*.pf"],
+          "processes": [],
+          "requires_admin": true,
+          "filter_markers": true
+        },
+        {
+          "id": "registry_traces",
+          "name": "Registro: rastros de ejecucion",
+          "vendor": "",
+          "kind_action": "registry",
+          "paths": [],
+          "processes": []
+        },
+        {
+          "id": "dns_cache",
+          "name": "Cache DNS",
+          "vendor": "",
+          "kind_action": "dns",
+          "paths": [],
+          "processes": []
+        },
+        {
+          "id": "clipboard",
+          "name": "Portapapeles e historial del portapapeles",
+          "vendor": "",
+          "kind_action": "clipboard",
+          "paths": [],
+          "processes": []
+        }
+      ]
+    }
+  ],
+  "browsers": [
+    {
+      "id": "chrome",
+      "name": "Google Chrome",
+      "base": "%LOCALAPPDATA%/Google/Chrome/User Data",
+      "profile_dirs": ["Default", "Profile *"],
+      "processes": ["chrome.exe"],
+      "engine": "chromium"
+    },
+    {
+      "id": "edge",
+      "name": "Microsoft Edge",
+      "base": "%LOCALAPPDATA%/Microsoft/Edge/User Data",
+      "profile_dirs": ["Default", "Profile *"],
+      "processes": ["msedge.exe"],
+      "engine": "chromium"
+    },
+    {
+      "id": "brave",
+      "name": "Brave",
+      "base": "%LOCALAPPDATA%/BraveSoftware/Brave-Browser/User Data",
+      "profile_dirs": ["Default", "Profile *"],
+      "processes": ["brave.exe"],
+      "engine": "chromium"
+    },
+    {
+      "id": "firefox",
+      "name": "Firefox",
+      "base": "%APPDATA%/Mozilla/Firefox/Profiles",
+      "profile_dirs": ["*"],
+      "processes": ["firefox.exe"],
+      "engine": "firefox"
+    }
+  ]
+}
