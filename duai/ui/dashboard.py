@@ -1,4 +1,5 @@
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
@@ -19,6 +20,19 @@ class DashboardView(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(64, 56, 64, 32)
         layout.setSpacing(14)
+
+        logo_label = QLabel()
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        import os, sys
+        if getattr(sys, "frozen", False):
+            base = sys._MEIPASS
+        else:
+            base = os.path.join(os.path.dirname(__file__), "..", "..")
+        icon_path = os.path.join(base, "assets", "duAI.png")
+        if os.path.exists(icon_path):
+            pixmap = QPixmap(icon_path)
+            logo_label.setPixmap(pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        layout.addWidget(logo_label)
 
         layout.addWidget(self._micro("ESTADO"))
         title = QLabel("Privacidad absoluta.")

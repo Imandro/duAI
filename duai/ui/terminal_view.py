@@ -1,5 +1,3 @@
-import queue
-import subprocess
 import threading
 
 from PySide6.QtCore import Qt, QTimer
@@ -14,36 +12,37 @@ from PySide6.QtWidgets import (
 )
 
 
-class _Reader(threading.Thread):
-    def __init__(self, proc, out_queue):
+class _PtyReader(threading.Thread):
+    def __init__(self, pty, callback):
         super().__init__(daemon=True)
-        self.proc = proc
-        self.q = out_queue
+        self.pty = pty
+        self.callback = callback
+        self.running = True
 
     def run(self):
-        try:
-            for line in iter(self.proc.stdout.readline, ""):
-                if not line:
+        while self.running:
+            try:
+                data = self.pty.read(4096)
+                if data:
+                    self.callback(data)
+                else:
                     break
-                self.q.put(line.rstrip("\n"))
-        except Exception:
-            pass
-        try:
-            self.proc.wait(timeout=2)
-        except Exception:
-            pass
-        self.q.put(None)
+            except Exception:
+                break
+
+    def stop(self):
+        self.running = False
 
 
 class TerminalView(QWidget):
     def __init__(self, main_window):
         super().__init__()
         self.mw = main_window
-        self._process = None
+        self._pty = None
         self._reader = None
-        self._queue = queue.Queue()
         self._history = []
         self._history_index = -1
+        self._input_buffer = ""
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(64, 56, 64, 32)
@@ -58,8 +57,8 @@ class TerminalView(QWidget):
         layout.addWidget(title)
 
         hint = QLabel(
-            "PowerShell integrado — escribe comandos directamente. "
-            "Escribe 'opencode' para iniciar OpenCode."
+            "Terminal real (PTY) — ejecuta cualquier app de consola: "
+            "opencode, claude, codex, gemini cli, etc."
         )
         hint.setObjectName("heroBody")
         hint.setWordWrap(True)
@@ -69,6 +68,7 @@ class TerminalView(QWidget):
         self.output = QPlainTextEdit()
         self.output.setReadOnly(True)
         self.output.setObjectName("terminalOutput")
+        self.output.setMaximumBlockLines(5000)
         layout.addWidget(self.output, 1)
 
         input_row = QHBoxLayout()
@@ -77,7 +77,7 @@ class TerminalView(QWidget):
         prompt.setObjectName("promptMark")
         self.input = QLineEdit()
         self.input.setObjectName("terminalInput")
-        self.input.setPlaceholderText("Escribe un comando de PowerShell...")
+        self.input.setPlaceholderText("Escribe un comando...")
         self.input.returnPressed.connect(self._submit)
         self.input.installEventFilter(self)
         clear_btn = QPushButton("LIMPIAR")
@@ -91,10 +91,43 @@ class TerminalView(QWidget):
 
         self._poll_timer = QTimer(self)
         self._poll_timer.timeout.connect(self._poll)
-        self._poll_timer.setInterval(60)
+        self._poll_timer.setInterval(30)
 
-        self._append("[duAI Terminal — PowerShell]\n")
-        self._append("[Escribe 'opencode' para iniciar OpenCode]\n")
+        self._start_pty()
+        self._append_line("[Terminal PTY iniciado — PowerShell listo]\n")
+        self._append_line("[Escribe comandos directamente o usa la pestaña TERMINAL para mas espacio]\n")
+
+    def _start_pty(self):
+        try:
+            import winpty
+            self._pty = winpty.Pty(shell="powershell.exe")
+            self._reader = _PtyReader(self._pty, self._on_data)
+            self._reader.start()
+            self._poll_timer.start()
+        except Exception as exc:
+            self._append_line(f"[ERROR] No se pudo iniciar PTY: {exc}\n")
+            self._append_line("[Usa la pestana TERMINAL para PowerShell basico]\n")
+
+    def _on_data(self, data):
+        self._pending = getattr(self, "_pending", "") + data
+
+    def _poll(self):
+        pending = getattr(self, "_pending", "")
+        if pending:
+            self._pending = ""
+            self._append_text(pending)
+
+    def _append_text(self, text):
+        cursor = self.output.textCursor()
+        cursor.movePosition(cursor.MoveOperation.End)
+        cursor.insertText(text)
+        self.output.setTextCursor(cursor)
+        self.output.ensureCursorVisible()
+        sb = self.output.verticalScrollBar()
+        sb.setValue(sb.maximum())
+
+    def _append_line(self, text):
+        self._append_text(text)
 
     def eventFilter(self, obj, event):
         if obj is self.input and event.type() == event.Type.KeyPress:
@@ -106,7 +139,7 @@ class TerminalView(QWidget):
                 self._history_forward()
                 return True
             if key == Qt.Key.Key_Escape:
-                self._kill_process()
+                self._kill()
                 return True
         return super().eventFilter(obj, event)
 
@@ -130,68 +163,29 @@ class TerminalView(QWidget):
             self.input.setText(self._history[self._history_index])
 
     def _submit(self):
-        text = self.input.text().strip()
-        if not text:
-            return
+        text = self.input.text()
         self._history.append(text)
         self._history_index = -1
         self.input.clear()
-        self._append(f"PS> {text}\n")
 
         if text.lower() in ("clear", "cls"):
             self._clear()
             return
 
-        try:
-            self._process = subprocess.Popen(
-                ["powershell.exe", "-NoLogo", "-NoProfile", "-Command", text],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                text=True,
-                bufsize=1,
-            )
-            self._queue = queue.Queue()
-            self._reader = _Reader(self._process, self._queue)
-            self._reader.start()
-            self.input.setEnabled(False)
-            self._poll_timer.start()
-        except Exception as exc:
-            self._append(f"[ERROR] {exc}\n")
+        if self._pty:
+            self._pty.write(text + "\r\n")
+        else:
+            self._append_line(f"PS> {text}\n")
 
-    def _poll(self):
-        try:
-            while True:
-                line = self._queue.get_nowait()
-                if line is None:
-                    self._poll_timer.stop()
-                    rc = self._process.returncode if self._process else "?"
-                    self._append(f"\n[Proceso finalizado — codigo {rc}]\n")
-                    self._process = None
-                    self._reader = None
-                    self.input.setEnabled(True)
-                    self.input.setFocus()
-                    return
-                self._append(line)
-        except queue.Empty:
-            pass
-
-    def _kill_process(self):
-        if self._process and self._process.poll() is None:
+    def _kill(self):
+        if self._pty:
             try:
-                self._process.terminate()
-                self._append("\n[Proceso interrumpido]\n")
+                self._pty.kill()
             except Exception:
                 pass
             self._poll_timer.stop()
-            self._process = None
-            self._reader = None
-            self.input.setEnabled(True)
-
-    def _append(self, text):
-        self.output.appendPlainText(text)
-        sb = self.output.verticalScrollBar()
-        sb.setValue(sb.maximum())
+            self._append_line("\n[Proceso interrumpido]\n")
+            self._start_pty()
 
     def _clear(self):
         self.output.clear()
@@ -199,3 +193,13 @@ class TerminalView(QWidget):
     def run_command(self, text):
         self.input.setText(text)
         self._submit()
+
+    def closeEvent(self, event):
+        if self._reader:
+            self._reader.stop()
+        if self._pty:
+            try:
+                self._pty.kill()
+            except Exception:
+                pass
+        super().closeEvent(event)

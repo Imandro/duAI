@@ -1,8 +1,22 @@
-# duAI — Don't Use AI
+<p align="center">
+  <img src="assets/duAI.png" alt="duAI Logo" width="200">
+</p>
 
-> Herramienta de privacidad para Windows que detecta y elimina todos los rastros que las herramientas de IA dejan en tu computadora.
+<h1 align="center">duAI — Don't Use AI</h1>
 
-**100% local. Sin telemetria. Sin cuentas. Sin conexion externa.**
+<p align="center">
+  Herramienta de privacidad para Windows que detecta y elimina todos los rastros que las herramientas de IA dejan en tu computadora.
+</p>
+
+<p align="center">
+  <strong>100% local. Sin telemetria. Sin cuentas. Sin conexion externa.</strong>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Windows-10%2F11-black?style=flat-square" alt="Windows">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square" alt="Python">
+  <img src="https://img.shields.io/badge/Licencia-MIT-green?style=flat-square" alt="MIT">
+</p>
 
 ---
 
@@ -176,8 +190,28 @@ Con **modo sigilo** activo, la bitacora se vacia automaticamente en cada cierre.
 | `hosts si\|no` | Bloqueo de telemetria via hosts |
 | `tarea crear\|quitar` | Tarea de Windows al iniciar sesion |
 | `cuarentena ver\|restaurar\|vaciar` | Gestiona cuarentena |
+| `cerrarpestañas` | Cierra pestañas de IA en navegadores Chromium |
+| `terminal [comando]` | Abre la terminal PTY o ejecuta un comando |
 | `purgarlogs` | Vacia bitacora y accesos recientes |
 | `salir` | Cierra duAI |
+
+---
+
+## Terminal PTY
+
+duAI incluye un terminal real (PTY) que puede ejecutar cualquier app de consola:
+
+- **Pestaña TERMINAL** — PowerShell completo con output en vivo
+- **Cajón CLI inferior** — escribe comandos directamente, los no-duAI se ejecutan en PowerShell
+- Soporta apps interactivas: `opencode`, `claude`, `codex`, `gemini cli`, `antigravity cli`, etc.
+
+```
+PS> opencode
+PS> claude
+PS> gemini
+PS> Get-Process
+PS> dir
+```
 
 ---
 

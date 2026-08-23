@@ -104,7 +104,17 @@ class MainWindow(QMainWindow):
         side_layout.setSpacing(2)
 
         brand_box = QVBoxLayout()
-        brand_box.setSpacing(2)
+        brand_box.setSpacing(4)
+        brand_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        logo_label = QLabel()
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        icon_path = _icon_path()
+        if os.path.exists(icon_path):
+            pixmap = QPixmap(icon_path)
+            logo_label.setPixmap(pixmap.scaled(64, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        brand_box.addWidget(logo_label)
+
         brand = QLabel("duAI")
         brand.setObjectName("brandTitle")
         brand.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -114,7 +124,7 @@ class MainWindow(QMainWindow):
         brand_box.addWidget(brand)
         brand_box.addWidget(subtitle)
         side_layout.addLayout(brand_box)
-        side_layout.addSpacing(36)
+        side_layout.addSpacing(24)
         self.nav_group = None
         self.nav_buttons = []
         from PySide6.QtWidgets import QButtonGroup
