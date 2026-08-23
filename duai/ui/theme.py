@@ -1,8 +1,12 @@
 import os
+import sys
 
 from PySide6.QtGui import QFont
 
-THEME_DIR = os.path.dirname(__file__)
+if getattr(sys, "frozen", False):
+    THEME_DIR = os.path.join(sys._MEIPASS, "duai", "ui")
+else:
+    THEME_DIR = os.path.dirname(__file__)
 
 PALETTES = {
     "claro": {

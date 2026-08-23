@@ -16,6 +16,7 @@ if (-not (Test-Path $venvPython)) {
     --noconsole `
     --name duAI `
     --add-data "config;config" `
+    --add-data "duai\ui\theme.qss;duai\ui" `
     main.py
 
 if (Test-Path (Join-Path $root "dist\duAI.exe")) {
