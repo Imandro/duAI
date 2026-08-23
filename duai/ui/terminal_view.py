@@ -1,7 +1,8 @@
+import queue
 import subprocess
 import threading
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -13,34 +14,34 @@ from PySide6.QtWidgets import (
 )
 
 
-class _OutputReader(threading.Thread):
-    def __init__(self, proc, callback):
+class _Reader(threading.Thread):
+    def __init__(self, proc, out_queue):
         super().__init__(daemon=True)
         self.proc = proc
-        self.callback = callback
+        self.q = out_queue
 
     def run(self):
         try:
             for line in iter(self.proc.stdout.readline, ""):
                 if not line:
                     break
-                self.callback(line)
+                self.q.put(line.rstrip("\n"))
         except Exception:
             pass
         try:
-            self.proc.wait(timeout=1)
+            self.proc.wait(timeout=2)
         except Exception:
             pass
-        self.callback(f"\n[Proceso finalizado — codigo {self.proc.returncode}]\n")
+        self.q.put(None)
 
 
 class TerminalView(QWidget):
-    command_run = Signal(str)
-
     def __init__(self, main_window):
         super().__init__()
         self.mw = main_window
         self._process = None
+        self._reader = None
+        self._queue = queue.Queue()
         self._history = []
         self._history_index = -1
 
@@ -57,8 +58,8 @@ class TerminalView(QWidget):
         layout.addWidget(title)
 
         hint = QLabel(
-            "Ejecuta comandos del sistema directamente. "
-            "Los comandos se procesan en segundo plano."
+            "PowerShell integrado — escribe comandos directamente. "
+            "Escribe 'opencode' para iniciar OpenCode."
         )
         hint.setObjectName("heroBody")
         hint.setWordWrap(True)
@@ -72,11 +73,11 @@ class TerminalView(QWidget):
 
         input_row = QHBoxLayout()
         input_row.setSpacing(8)
-        prompt = QLabel(">")
+        prompt = QLabel("PS>")
         prompt.setObjectName("promptMark")
         self.input = QLineEdit()
         self.input.setObjectName("terminalInput")
-        self.input.setPlaceholderText("Escribe un comando...")
+        self.input.setPlaceholderText("Escribe un comando de PowerShell...")
         self.input.returnPressed.connect(self._submit)
         self.input.installEventFilter(self)
         clear_btn = QPushButton("LIMPIAR")
@@ -88,7 +89,12 @@ class TerminalView(QWidget):
         input_row.addWidget(clear_btn)
         layout.addLayout(input_row)
 
-        self._append("[duAI Terminal — escribe un comando y presiona Enter]\n")
+        self._poll_timer = QTimer(self)
+        self._poll_timer.timeout.connect(self._poll)
+        self._poll_timer.setInterval(60)
+
+        self._append("[duAI Terminal — PowerShell]\n")
+        self._append("[Escribe 'opencode' para iniciar OpenCode]\n")
 
     def eventFilter(self, obj, event):
         if obj is self.input and event.type() == event.Type.KeyPress:
@@ -130,35 +136,45 @@ class TerminalView(QWidget):
         self._history.append(text)
         self._history_index = -1
         self.input.clear()
-        self._append(f"> {text}\n")
+        self._append(f"PS> {text}\n")
 
-        if text.lower() in ("clear", "limpiar", "cls"):
+        if text.lower() in ("clear", "cls"):
             self._clear()
-            return
-
-        if text.lower() in ("exit", "salir"):
-            self._append("[usa el boton CERRAR o el comando del menu para salir de duAI]\n")
             return
 
         try:
             self._process = subprocess.Popen(
-                text,
-                shell=True,
+                ["powershell.exe", "-NoLogo", "-NoProfile", "-Command", text],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
+                stdin=subprocess.DEVNULL,
                 text=True,
                 bufsize=1,
-                cwd=None,
             )
-            reader = _OutputReader(self._process, self._append_safe)
-            reader.start()
+            self._queue = queue.Queue()
+            self._reader = _Reader(self._process, self._queue)
+            self._reader.start()
             self.input.setEnabled(False)
-            reader.join()
-            self.input.setEnabled(True)
-            self._process = None
+            self._poll_timer.start()
         except Exception as exc:
             self._append(f"[ERROR] {exc}\n")
-            self._process = None
+
+    def _poll(self):
+        try:
+            while True:
+                line = self._queue.get_nowait()
+                if line is None:
+                    self._poll_timer.stop()
+                    rc = self._process.returncode if self._process else "?"
+                    self._append(f"\n[Proceso finalizado — codigo {rc}]\n")
+                    self._process = None
+                    self._reader = None
+                    self.input.setEnabled(True)
+                    self.input.setFocus()
+                    return
+                self._append(line)
+        except queue.Empty:
+            pass
 
     def _kill_process(self):
         if self._process and self._process.poll() is None:
@@ -167,19 +183,15 @@ class TerminalView(QWidget):
                 self._append("\n[Proceso interrumpido]\n")
             except Exception:
                 pass
+            self._poll_timer.stop()
+            self._process = None
+            self._reader = None
+            self.input.setEnabled(True)
 
     def _append(self, text):
-        self.output.appendPlainText(text.rstrip())
+        self.output.appendPlainText(text)
         sb = self.output.verticalScrollBar()
         sb.setValue(sb.maximum())
-
-    def _append_safe(self, text):
-        from PySide6.QtCore import QMetaObject, Qt
-
-        QMetaObject.invokeMethod(
-            self, "_append", Qt.ConnectionType.QueuedConnection,
-            _append_slot=lambda: self._append(text),
-        )
 
     def _clear(self):
         self.output.clear()
