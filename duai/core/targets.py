@@ -23,6 +23,19 @@ AI_MARKERS = [
     "gemini",
     "deepseek",
     "mistral",
+    "opencode",
+    "codex",
+    "aider",
+    "huggingface",
+    "jan",
+    "continue",
+    "tabnine",
+    "grok",
+    "llama",
+    "sillytavern",
+    "lobechat",
+    "open-webui",
+    "koboldcpp",
 ]
 
 

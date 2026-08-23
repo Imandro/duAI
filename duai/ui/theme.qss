@@ -29,25 +29,36 @@ QMainWindow, QDialog {
 }
 
 #heroTitle {
-    font-size: 30px;
+    font-size: 28px;
     font-weight: 300;
+    letter-spacing: 0.5px;
 }
 
 #heroBody {
     color: __BODY__;
     font-size: 12px;
-    line-height: 150%;
+    line-height: 160%;
+}
+
+#statCard {
+    background: __ALT__;
+    border: 1px solid __LINE__;
+    border-radius: 8px;
+    padding: 16px 20px;
 }
 
 #statNumber {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 300;
+    letter-spacing: 0.5px;
 }
 
 QPushButton {
-    background: __BG__;
+    background: __FG__;
+    color: __BG__;
     border: 1px solid __FG__;
-    padding: 10px 18px;
+    border-radius: 4px;
+    padding: 10px 20px;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 2px;
@@ -55,30 +66,32 @@ QPushButton {
 }
 
 QPushButton:hover {
-    background: __FG__;
-    color: __BG__;
+    background: __SOFT__;
+    border-color: __SOFT__;
 }
 
 QPushButton:pressed {
-    background: __FG__;
-    color: __BG__;
+    background: __BG__;
+    color: __FG__;
 }
 
 QPushButton:disabled {
-    border-color: __SOFT__;
+    border-color: __LINE__;
     color: __SOFT__;
-    background: __BG__;
+    background: __ALT__;
 }
 
 #navButton {
     background: transparent;
     border: none;
-    border-left: 2px solid transparent;
+    border-left: 3px solid transparent;
+    border-radius: 0;
     padding: 14px 20px;
     text-align: left;
     letter-spacing: 3px;
     font-weight: 500;
-    color: __FG__;
+    color: __SOFT__;
+    font-size: 12px;
 }
 
 #navButton:hover {
@@ -87,15 +100,17 @@ QPushButton:disabled {
 }
 
 #navButton:checked {
-    background: __FG__;
-    color: __BG__;
-    border-left: 2px solid __FG__;
+    background: __HOVER__;
+    color: __FG__;
+    border-left: 3px solid __FG__;
+    font-weight: 600;
 }
 
 #panicButton {
     background: __FG__;
     color: __BG__;
     border: 1px solid __FG__;
+    border-radius: 6px;
     font-size: 26px;
     font-weight: 700;
     letter-spacing: 10px;
@@ -109,7 +124,8 @@ QPushButton:disabled {
 
 #lineEdit, QSpinBox {
     border: 1px solid __LINE__;
-    padding: 8px 10px;
+    border-radius: 4px;
+    padding: 8px 12px;
     background: __BG__;
     selection-background-color: __FG__;
     selection-color: __BG__;
@@ -121,44 +137,70 @@ QPushButton:disabled {
 
 QTableWidget {
     border: 1px solid __LINE__;
-    gridline-color: __GRID__;
-    selection-background-color: __FG__;
-    selection-color: __BG__;
+    border-radius: 4px;
+    gridline-color: transparent;
+    selection-background-color: __HOVER__;
+    selection-color: __FG__;
     alternate-background-color: __ALT__;
+}
+
+QTableWidget::item {
+    padding: 6px 8px;
+    border-bottom: 1px solid __LINE__;
+}
+
+QTableWidget::item:selected {
+    background: __HOVER__;
 }
 
 QHeaderView::section {
     background: __BG__;
     border: none;
-    border-bottom: 1px solid __FG__;
-    padding: 8px;
+    border-bottom: 2px solid __FG__;
+    padding: 10px 8px;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 2px;
+    color: __SOFT__;
 }
 
 QCheckBox, QRadioButton {
-    spacing: 10px;
+    spacing: 12px;
     font-size: 12px;
+    font-weight: 500;
+    padding: 4px 0;
 }
 
 QCheckBox::indicator, QRadioButton::indicator {
-    width: 14px;
-    height: 14px;
-    border: 1px solid __FG__;
+    width: 18px;
+    height: 18px;
+    border: 2px solid __LINE__;
+    border-radius: 4px;
     background: __BG__;
 }
 
 QRadioButton::indicator {
-    border-radius: 7px;
+    border-radius: 9px;
+}
+
+QCheckBox::indicator:hover, QRadioButton::indicator:hover {
+    border-color: __FG__;
 }
 
 QCheckBox::indicator:checked, QRadioButton::indicator:checked {
     background: __FG__;
+    border-color: __FG__;
+}
+
+QCheckBox::indicator:checked:hover, QRadioButton::indicator:checked:hover {
+    background: __FG__;
+    border-color: __FG__;
+    opacity: 0.8;
 }
 
 QTextEdit {
     border: 1px solid __LINE__;
+    border-radius: 4px;
     font-family: "Consolas";
     font-size: 11px;
     selection-background-color: __FG__;
@@ -168,11 +210,13 @@ QTextEdit {
 QScrollBar:vertical {
     background: __BG__;
     width: 6px;
+    border: none;
 }
 
 QScrollBar::handle:vertical {
     background: __HANDLE__;
     min-height: 30px;
+    border-radius: 3px;
 }
 
 QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::sub-page {
@@ -182,7 +226,7 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 }
 
 #divider {
-    background-color: __FG__;
+    background-color: transparent;
     max-height: 1px;
     border: none;
 }
@@ -243,6 +287,7 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
     background: transparent;
     color: __SOFT__;
     border: 1px solid __LINE__;
+    border-radius: 3px;
     padding: 2px 10px;
     letter-spacing: 1px;
 }
@@ -268,6 +313,7 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
     background: __BG__;
     color: __FG__;
     border: 1px solid __LINE__;
+    border-radius: 4px;
     font-family: "Consolas";
     font-size: 12px;
     selection-background-color: __FG__;
@@ -278,10 +324,11 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
     background: __BG__;
     color: __FG__;
     border: 1px solid __LINE__;
+    border-radius: 4px;
     caret-color: __FG__;
     font-family: "Consolas";
     font-size: 13px;
-    padding: 8px 4px;
+    padding: 8px 6px;
     selection-background-color: __FG__;
     selection-color: __BG__;
 }
@@ -293,6 +340,7 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 #floatFrame {
     background: __BG__;
     border: 2px solid __FG__;
+    border-radius: 8px;
 }
 
 #floatPanic {
@@ -308,4 +356,101 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 #floatPanic:hover {
     background: __BG__;
     color: __FG__;
+}
+
+#statusBadge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: __HOVER__;
+    color: __FG__;
+}
+
+#badgeFound {
+    background: __FG__;
+    color: __BG__;
+}
+
+#badgeEmpty {
+    background: __HOVER__;
+    color: __SOFT__;
+}
+
+#badgeLocked {
+    background: __HOVER__;
+    color: __SOFT__;
+}
+
+#badgeReady {
+    background: __HOVER__;
+    color: __FG__;
+}
+
+#badgeError {
+    background: __HOVER__;
+    color: __SOFT__;
+}
+
+#progressBar {
+    border: none;
+    border-radius: 2px;
+    max-height: 4px;
+    background: __LINE__;
+}
+
+#progressBar::chunk {
+    background: __FG__;
+    border-radius: 2px;
+}
+
+#toolChip {
+    background: __HOVER__;
+    border: 1px solid __LINE__;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: __FG__;
+}
+
+#toolChip:hover {
+    background: __FG__;
+    color: __BG__;
+    border-color: __FG__;
+}
+
+#toolChip:checked {
+    background: __FG__;
+    color: __BG__;
+    border-color: __FG__;
+}
+
+#scanSummary {
+    color: __SOFT__;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+#toolSectionTitle {
+    color: __SOFT__;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 3px;
+}
+
+#cliSessionStatus {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+#cliSessionActive {
+    color: __FG__;
+}
+
+#cliSessionIdle {
+    color: __SOFT__;
 }

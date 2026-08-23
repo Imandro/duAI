@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import (
+    QFileDialog,
     QHBoxLayout,
     QLabel,
     QMessageBox,
@@ -8,6 +9,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core import session as session_core
+from ..core import cli_session
 
 
 class SessionView(QWidget):
@@ -84,7 +86,6 @@ class SessionView(QWidget):
         grid_container.setLayout(sites_wrap)
         layout.addWidget(grid_container)
 
-        layout.addSpacing(12)
         action_row = QHBoxLayout()
         self.status = QLabel("SESION INACTIVA")
         self.status.setObjectName("statusLabel")
@@ -94,6 +95,63 @@ class SessionView(QWidget):
         action_row.addStretch(1)
         action_row.addWidget(self.stop_btn)
         layout.addLayout(action_row)
+
+        layout.addSpacing(24)
+
+        cli_separator = QLabel("HERRAMIENTAS DE CONSOLA SEGURA")
+        cli_separator.setObjectName("toolSectionTitle")
+        layout.addWidget(cli_separator)
+
+        cli_body = QLabel(
+            "Ejecuta herramientas de IA de consola (opencode, claude, codex, etc.) "
+            "en un entorno aislado. Todo lo que escriban queda dentro del sandbox. "
+            "Al terminar, se borran los rastros automaticamente."
+        )
+        cli_body.setWordWrap(True)
+        cli_body.setObjectName("heroBody")
+        cli_body.setMaximumWidth(560)
+        layout.addWidget(cli_body)
+
+        tools_row = QHBoxLayout()
+        tools_row.setSpacing(8)
+        tools = cli_session.list_tools()
+        self._cli_btns = {}
+        for tool_id, tool_name in tools.items():
+            btn = QPushButton(tool_name.upper())
+            btn.setObjectName("toolChip")
+            btn.setCheckable(True)
+            btn.clicked.connect(lambda checked, tid=tool_id: self._select_tool(tid))
+            tools_row.addWidget(btn)
+            self._cli_btns[tool_id] = btn
+        tools_row.addStretch(1)
+        layout.addLayout(tools_row)
+
+        self._selected_tool = None
+
+        cli_action_row = QHBoxLayout()
+        self.cli_status = QLabel("")
+        self.cli_status.setObjectName("cliSessionStatus")
+        self.cli_status.setObjectName("cliSessionIdle")
+        cli_action_row.addWidget(self.cli_status)
+        cli_action_row.addStretch(1)
+
+        self.select_cwd_btn = QPushButton("CARPETA DE TRABAJO")
+        self.select_cwd_btn.setObjectName("toolChip")
+        self.select_cwd_btn.clicked.connect(self._select_cwd)
+        self._cwd = None
+        cli_action_row.addWidget(self.select_cwd_btn)
+
+        self.cli_start_btn = QPushButton("INICIAR SESION SEGURA")
+        self.cli_start_btn.clicked.connect(self._start_cli_session)
+        cli_action_row.addWidget(self.cli_start_btn)
+
+        self.cli_stop_btn = QPushButton("TERMINAR Y BORRAR RASTROS")
+        self.cli_stop_btn.setObjectName("cliHide")
+        self.cli_stop_btn.clicked.connect(self._stop_cli_session)
+        self.cli_stop_btn.setVisible(False)
+        cli_action_row.addWidget(self.cli_stop_btn)
+
+        layout.addLayout(cli_action_row)
 
         layout.addStretch(1)
 
@@ -141,6 +199,52 @@ class SessionView(QWidget):
         else:
             self.status.setText("SESION INACTIVA")
 
+    def _select_tool(self, tool_id):
+        self._selected_tool = tool_id
+        for tid, btn in self._cli_btns.items():
+            btn.setChecked(tid == tool_id)
+
+    def _select_cwd(self):
+        d = QFileDialog.getExistingDirectory(self, "Seleccionar carpeta de trabajo")
+        if d:
+            self._cwd = d
+            self.select_cwd_btn.setText(d.split("/")[-1].split("\\")[-1].upper())
+
+    def _start_cli_session(self):
+        if not self._selected_tool:
+            QMessageBox.information(self, "duAI", "Selecciona una herramienta primero.")
+            return
+        session = cli_session.start_session(self._selected_tool, cwd=self._cwd)
+        if session:
+            self.mw.navigate(6)
+            self.mw.terminal_view._launch_tool(self._selected_tool)
+            self._refresh_cli_status()
+        else:
+            QMessageBox.warning(self, "duAI", "No se pudo iniciar la sesion. Verifica que la herramienta este instalada.")
+
+    def _stop_cli_session(self):
+        cli_session.stop_session()
+        if hasattr(self.mw, "terminal_view"):
+            self.mw.terminal_view._stop_session()
+        self._refresh_cli_status()
+
+    def _refresh_cli_status(self):
+        session = cli_session.get_active_session()
+        if session and session.is_running:
+            tool = cli_session.CLI_TOOLS.get(session.tool_id, {})
+            self.cli_status.setText(f"SESIÓN ACTIVA: {tool.get('name', '').upper()}")
+            self.cli_status.setObjectName("cliSessionActive")
+            self.cli_stop_btn.setVisible(True)
+            self.cli_start_btn.setVisible(False)
+        else:
+            self.cli_status.setText("SIN SESION ACTIVA")
+            self.cli_status.setObjectName("cliSessionIdle")
+            self.cli_stop_btn.setVisible(False)
+            self.cli_start_btn.setVisible(True)
+        self.cli_status.style().unpolish(self.cli_status)
+        self.cli_status.style().polish(self.cli_status)
+
     def showEvent(self, event):
         self._refresh_status()
+        self._refresh_cli_status()
         super().showEvent(event)

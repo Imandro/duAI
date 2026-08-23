@@ -89,15 +89,17 @@ class DashboardView(QWidget):
 
     def _stat(self, parent_layout, caption, initial):
         box = QVBoxLayout()
+        box.setSpacing(4)
         caption_label = QLabel(caption)
         caption_label.setObjectName("microLabel")
         value = QLabel(initial)
         value.setObjectName("statNumber")
         box.addWidget(caption_label)
         box.addWidget(value)
-        container = QWidget()
-        container.setLayout(box)
-        parent_layout.addWidget(container)
+        card = QWidget()
+        card.setObjectName("statCard")
+        card.setLayout(box)
+        parent_layout.addWidget(card)
         return value
 
     def refresh_stats(self):

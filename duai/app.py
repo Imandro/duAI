@@ -86,6 +86,9 @@ class MainWindow(QMainWindow):
         self._boot_faded = False
         self.setWindowOpacity(0.0)
 
+        from .core.cli_session import cleanup_orphan_sandboxes
+        cleanup_orphan_sandboxes()
+
         central = QWidget()
         outer = QVBoxLayout(central)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -253,7 +256,7 @@ class MainWindow(QMainWindow):
             path = os.path.join(base, "assets", "duAI.png")
         if os.path.exists(path) and hasattr(self, "_logo_label"):
             pixmap = QPixmap(path)
-            self._logo_label.setPixmap(pixmap.scaled(160, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            self._logo_label.setPixmap(pixmap.scaled(170, 60, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
 
     def apply_ui_mode(self, mode):
         from PySide6.QtWidgets import QApplication
@@ -444,6 +447,9 @@ class MainWindow(QMainWindow):
             self._float_widget.hide()
         if has_running_session():
             stop_session()
+        from .core.cli_session import stop_session as cli_stop, cleanup_orphan_sandboxes
+        cli_stop()
+        cleanup_orphan_sandboxes()
         if settings.get("auto_clean_on_exit"):
             from .core.panic import perform_silent_clean
             from .ui.worker import Worker

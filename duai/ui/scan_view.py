@@ -1,8 +1,11 @@
-from PySide6.QtCore import Qt
+import time
+
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
     QMessageBox,
+    QProgressBar,
     QTableWidget,
     QTableWidgetItem,
     QTextBrowser,
@@ -23,13 +26,26 @@ from ..core.scanner import (
 )
 from .worker import Worker
 
+_BADGE_MAP = {
+    STATUS_FOUND: "badgeFound",
+    STATUS_EMPTY: "badgeEmpty",
+    STATUS_READY: "badgeReady",
+    STATUS_LOCKED: "badgeLocked",
+    STATUS_ADMIN: "badgeLocked",
+    STATUS_ERROR: "badgeError",
+}
+
 
 class ScanView(QWidget):
+    progress = Signal(int, int, str)
+
     def __init__(self, main_window):
         super().__init__()
         self.mw = main_window
         self.report = None
         self._worker = None
+        self._start_time = 0
+        self._elapsed_timer = None
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(64, 56, 64, 32)
@@ -44,6 +60,11 @@ class ScanView(QWidget):
         title.setStyleSheet("font-size: 22px; font-weight: 300;")
         header.addWidget(title)
         header.addStretch(1)
+        self.cancel_btn = QPushButton("CANCELAR")
+        self.cancel_btn.setObjectName("cliHide")
+        self.cancel_btn.setVisible(False)
+        self.cancel_btn.clicked.connect(self._cancel_scan)
+        header.addWidget(self.cancel_btn)
         self.scan_btn = QPushButton("ESCANEAR")
         self.scan_btn.clicked.connect(self.start_scan)
         self.txt_btn = QPushButton("EXPORTAR TXT")
@@ -55,6 +76,17 @@ class ScanView(QWidget):
             header.addWidget(btn)
         header.addWidget(self.scan_btn)
         layout.addLayout(header)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("progressBar")
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setMaximumHeight(4)
+        self.progress_bar.setValue(0)
+        layout.addWidget(self.progress_bar)
+
+        self.progress_label = QLabel("")
+        self.progress_label.setObjectName("hintLabel")
+        layout.addWidget(self.progress_label)
 
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
@@ -70,27 +102,45 @@ class ScanView(QWidget):
         self.table.setColumnWidth(2, 160)
         self.table.setColumnWidth(3, 90)
         self.table.doubleClicked.connect(self._show_detail)
+        self.table.setVisible(False)
         layout.addWidget(self.table, 1)
 
         self.summary = QLabel("SIN DATOS. EJECUTA UN ESCANEO.")
-        self.summary.setObjectName("statusLabel")
+        self.summary.setObjectName("scanSummary")
         layout.addWidget(self.summary)
+
+        self.progress.connect(self._on_progress)
+        self._target_count = 0
 
     def start_scan(self):
         if self._worker and self._worker.isRunning():
             return False
         self.scan_btn.setEnabled(False)
         self.scan_btn.setText("ESCANEANDO...")
+        self.cancel_btn.setVisible(True)
+        self.txt_btn.setEnabled(False)
+        self.csv_btn.setEnabled(False)
+        self.table.setRowCount(0)
+        self.table.setVisible(False)
+        self.progress_bar.setValue(0)
+        self._start_time = time.time()
+        self._elapsed_timer_obj = __import__("PySide6.QtCore", fromlist=["QTimer"]).QTimer(self)
+        self._elapsed_timer_obj.setInterval(200)
+        self._elapsed_timer_obj.timeout.connect(self._tick_elapsed)
+        self._elapsed_timer_obj.start()
+
         from ..core.targets import build_targets
         from ..utils.settings import get_settings
 
         exclusions = set(get_settings().get("exclusions") or [])
         targets = build_targets(exclusions=exclusions)
+        self._target_count = len(targets)
+        self.progress_label.setText(f"0/{self._target_count} objetivos")
 
         def job():
-            from ..core.scanner import scan_targets
+            from ..core.scanner import scan_targets_parallel
 
-            return scan_targets(targets)
+            return scan_targets_parallel(targets, progress_cb=self._emit_progress)
 
         self._worker = Worker(job)
         self._worker.done.connect(self._scan_done)
@@ -98,30 +148,59 @@ class ScanView(QWidget):
         self._worker.start()
         return True
 
+    def _emit_progress(self, current, total, name):
+        self.progress.emit(current, total, name)
+
+    def _on_progress(self, current, total, name):
+        if total > 0:
+            self.progress_bar.setMaximum(total)
+            self.progress_bar.setValue(current)
+        elapsed = time.time() - self._start_time
+        self.progress_label.setText(
+            f"{current}/{total} objetivos · {elapsed:.1f}s"
+        )
+
+    def _tick_elapsed(self):
+        if self._worker and self._worker.isRunning():
+            elapsed = time.time() - self._start_time
+            self.progress_label.setText(
+                f"{self.progress_bar.value()}/{self._target_count} objetivos · {elapsed:.1f}s"
+            )
+
+    def _cancel_scan(self):
+        if self._worker and self._worker.isRunning():
+            self._worker.terminate()
+            self._scan_btn_reset()
+
+    def _scan_btn_reset(self):
+        self.scan_btn.setEnabled(True)
+        self.scan_btn.setText("ESCANEAR")
+        self.cancel_btn.setVisible(False)
+        if hasattr(self, "_elapsed_timer_obj") and self._elapsed_timer_obj:
+            self._elapsed_timer_obj.stop()
+
     def _scan_done(self, report):
         self.report = report
         self.mw.last_report = report
         self._fill_table(report)
-        self.scan_btn.setEnabled(True)
-        self.scan_btn.setText("ESCANEAR")
+        self._scan_btn_reset()
         self.txt_btn.setEnabled(True)
         self.csv_btn.setEnabled(True)
+        self.table.setVisible(True)
+        elapsed = time.time() - self._start_time
         found = len(report.found_entries)
         self.summary.setText(
-            f"{found} OBJETIVOS CON RASTROS · {report.total_bytes} BYTES · {report.scanned_at}"
+            f"{found} OBJETIVOS CON RASTROS · {report.total_bytes} BYTES · {elapsed:.1f}s · {report.scanned_at}"
         )
+        self.progress_label.setText("")
+        self.progress_bar.setValue(self.progress_bar.maximum())
         self.mw.dashboard_view.refresh_stats()
 
     def _scan_failed(self, message):
-        self.scan_btn.setEnabled(True)
-        self.scan_btn.setText("ESCANEAR")
+        self._scan_btn_reset()
         QMessageBox.warning(self, "duAI", "Error durante el escaneo: " + message)
 
     def _fill_table(self, report):
-        from PySide6.QtGui import QColor
-
-        from .theme import color
-
         entries = sorted(report.entries, key=lambda e: e.status != STATUS_FOUND)
         self.table.setRowCount(len(entries))
         for row, entry in enumerate(entries):
@@ -136,10 +215,9 @@ class ScanView(QWidget):
                 item = QTableWidgetItem(value)
                 if col == 2:
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-                if entry.status in (STATUS_EMPTY, STATUS_READY):
-                    item.setForeground(QColor(color("SOFT")))
-                elif entry.status in (STATUS_LOCKED, STATUS_ADMIN, STATUS_ERROR):
-                    item.setForeground(QColor(color("BODY")))
+                    badge = _BADGE_MAP.get(entry.status)
+                    if badge:
+                        item.setData(Qt.ItemDataRole.UserRole, badge)
                 self.table.setItem(row, col, item)
         self.table.resizeColumnsToContents()
         self.table.setColumnWidth(0, 300)

@@ -101,6 +101,62 @@
           "vendor": "Perplexity AI",
           "paths": ["%APPDATA%/Perplexity"],
           "processes": ["Perplexity.exe"]
+        },
+        {
+          "id": "opencode_data",
+          "name": "OpenCode",
+          "vendor": "OpenCode",
+          "paths": ["%USERPROFILE%/.opencode"],
+          "processes": []
+        },
+        {
+          "id": "codex_data",
+          "name": "Codex CLI",
+          "vendor": "OpenAI",
+          "paths": ["%USERPROFILE%/.codex"],
+          "processes": []
+        },
+        {
+          "id": "claude_cli_data",
+          "name": "Claude Code",
+          "vendor": "Anthropic",
+          "paths": ["%USERPROFILE%/.claude"],
+          "processes": []
+        },
+        {
+          "id": "aider_data",
+          "name": "Aider",
+          "vendor": "Aider",
+          "paths": ["%USERPROFILE%/.aider"],
+          "processes": []
+        },
+        {
+          "id": "huggingface_cache",
+          "name": "HuggingFace Cache",
+          "vendor": "HuggingFace",
+          "paths": ["%USERPROFILE%/.cache/huggingface"],
+          "processes": []
+        },
+        {
+          "id": "jan_data",
+          "name": "Jan.ai",
+          "vendor": "Jan",
+          "paths": ["%LOCALAPPDATA%/jan"],
+          "processes": []
+        },
+        {
+          "id": "continue_data",
+          "name": "Continue",
+          "vendor": "Continue",
+          "paths": ["%USERPROFILE%/.continue"],
+          "processes": []
+        },
+        {
+          "id": "open_webui_data",
+          "name": "Open WebUI",
+          "vendor": "Open WebUI",
+          "paths": ["%LOCALAPPDATA%/open-webui"],
+          "processes": []
         }
       ]
     },
