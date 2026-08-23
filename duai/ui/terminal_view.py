@@ -3,6 +3,7 @@ import re
 import threading
 
 from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import QFont, QTextCharFormat, QColor
 from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
@@ -14,11 +15,17 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-_ANSI_RE = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]|\x1b\][^\x07]*\x07|\x1b[()][AB012]')
+_ANSI_RE = re.compile(
+    r'(\x1b\[[0-9;]*[a-zA-Z])'
+    r'|(\x1b\][^\x07]*\x07)'
+    r'|(\x1b[()][AB012])'
+    r'|(\x1b[=>])'
+    r'|(\x1b\[[?][0-9;]*[a-zA-Z])'
+)
 
 
 def _strip_ansi(text):
-    return _ANSI_RE.sub('', text)
+    return _ANSI_RE.sub('', text).replace('\r', '')
 
 
 class _PtyReader(threading.Thread):
@@ -58,28 +65,15 @@ class TerminalView(QWidget):
         self._cli_session = None
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(64, 56, 64, 32)
+        layout.setContentsMargins(32, 32, 32, 24)
         layout.setSpacing(12)
 
-        header = QLabel("TERMINAL DEL SISTEMA")
+        header = QLabel("TERMINAL")
         header.setObjectName("microLabel")
         layout.addWidget(header)
 
-        title = QLabel("Consola")
-        title.setStyleSheet("font-size: 22px; font-weight: 300;")
-        layout.addWidget(title)
-
-        hint = QLabel(
-            "Terminal real (PTY) — ejecuta cualquier app de consola: "
-            "opencode, claude, codex, gemini cli, etc."
-        )
-        hint.setObjectName("heroBody")
-        hint.setWordWrap(True)
-        hint.setMaximumWidth(560)
-        layout.addWidget(hint)
-
         self.tool_bar = QHBoxLayout()
-        self.tool_bar.setSpacing(8)
+        self.tool_bar.setSpacing(6)
         from ..core.cli_session import list_tools
         tools = list_tools()
         self._tool_btns = {}
@@ -91,49 +85,38 @@ class TerminalView(QWidget):
             self.tool_bar.addWidget(btn)
             self._tool_btns[tool_id] = btn
         self.tool_bar.addStretch(1)
-        self.cwd_label = QLabel("")
-        self.cwd_label.setObjectName("hintLabel")
-        self.tool_bar.addWidget(self.cwd_label)
-        layout.addLayout(self.tool_bar)
-
-        status_row = QHBoxLayout()
         self.session_status = QLabel("")
         self.session_status.setObjectName("cliSessionIdle")
-        status_row.addWidget(self.session_status)
-        status_row.addStretch(1)
-        self.stop_btn = QPushButton("TERMINAR SESION")
+        self.tool_bar.addWidget(self.session_status)
+        self.stop_btn = QPushButton("X")
         self.stop_btn.setObjectName("cliHide")
+        self.stop_btn.setFixedSize(28, 28)
         self.stop_btn.setVisible(False)
         self.stop_btn.clicked.connect(self._stop_session)
-        status_row.addWidget(self.stop_btn)
-        layout.addLayout(status_row)
+        self.tool_bar.addWidget(self.stop_btn)
+        layout.addLayout(self.tool_bar)
 
         self.output = QPlainTextEdit()
         self.output.setReadOnly(True)
         self.output.setObjectName("terminalOutput")
-        self.output.setMaximumBlockCount(5000)
-        font = self.output.font()
-        font.setFamily("Consolas")
-        font.setPointSize(10)
+        self.output.setMaximumBlockCount(3000)
+        font = QFont("Consolas", 10)
+        font.setStyleHint(QFont.StyleHint.Monospace)
         self.output.setFont(font)
+        self.output.setLineWrapMode(QPlainTextEdit.LineWrapMode.NoWrap)
         layout.addWidget(self.output, 1)
 
         input_row = QHBoxLayout()
-        input_row.setSpacing(8)
-        prompt = QLabel("PS>")
-        prompt.setObjectName("promptMark")
+        input_row.setSpacing(6)
         self.input = QLineEdit()
         self.input.setObjectName("terminalInput")
         self.input.setPlaceholderText("Escribe un comando...")
         self.input.returnPressed.connect(self._submit)
         self.input.installEventFilter(self)
-        clear_btn = QPushButton("LIMPIAR")
-        clear_btn.setObjectName("cliHide")
-        clear_btn.setFixedHeight(28)
-        clear_btn.clicked.connect(self._clear)
-        input_row.addWidget(prompt)
+        font_in = QFont("Consolas", 10)
+        font_in.setStyleHint(QFont.StyleHint.Monospace)
+        self.input.setFont(font_in)
         input_row.addWidget(self.input, 1)
-        input_row.addWidget(clear_btn)
         layout.addLayout(input_row)
 
         self._poll_timer = QTimer(self)
@@ -141,24 +124,23 @@ class TerminalView(QWidget):
         self._poll_timer.setInterval(30)
 
         self._start_pty()
-        self._append_text("[Terminal listo]\n")
 
     def _start_pty(self, env=None, cwd=None):
         try:
             from winpty.ptyprocess import PtyProcess
             self._pty = PtyProcess.spawn(
-                "powershell.exe",
+                "powershell.exe -NoLogo -NoProfile",
                 cwd=cwd or os.path.expandvars("%USERPROFILE%"),
                 env=env or os.environ.copy(),
-                dimensions=(40, 120),
+                dimensions=(50, 140),
             )
             self._reader = _PtyReader(self._pty, self._on_data)
             self._reader.start()
             self._poll_timer.start()
         except ImportError:
-            self._append_text("[ERROR] pywinpty no instalado\n")
+            self._append_text("[pywinpty no instalado]\n")
         except Exception as exc:
-            self._append_text(f"[ERROR] PTY: {exc}\n")
+            self._append_text(f"[Error PTY: {exc}]\n")
 
     def _launch_tool(self, tool_id):
         from ..core.cli_session import CLI_TOOLS, _create_sandbox, _build_env
@@ -176,9 +158,7 @@ class TerminalView(QWidget):
 
         self._stop_pty()
         self.output.clear()
-        self._append_text(f"[Sesion segura: {tool['name']}] Carpeta: {cwd}\n")
-        self._append_text(f"[Sandbox: {sandbox}]\n")
-        self._append_text("[Al salir se borrara automaticamente.]\n\n")
+        self._append_text(f"[Sesion: {tool['name']}] -> {cwd}\n")
 
         self._start_pty(env=env, cwd=cwd)
 
@@ -188,7 +168,7 @@ class TerminalView(QWidget):
             "is_running": True,
         })()
 
-        self.session_status.setText(f"ACTIVA: {tool['name'].upper()}")
+        self.session_status.setText(tool['name'].upper())
         self.session_status.setObjectName("cliSessionActive")
         self.session_status.style().unpolish(self.session_status)
         self.session_status.style().polish(self.session_status)
@@ -216,7 +196,7 @@ class TerminalView(QWidget):
             self.stop_btn.setVisible(False)
             for btn in self._tool_btns.values():
                 btn.setEnabled(True)
-            self._append_text("\n[Sesion terminada — rastros eliminados]\n")
+            self._append_text("[Sesion cerrada]\n")
             self._start_pty()
 
     def _stop_pty(self):
@@ -312,7 +292,7 @@ class TerminalView(QWidget):
             except EOFError:
                 self._append_text("[Sesion cerrada]\n")
         else:
-            self._append_text(f"PS> {text}\n")
+            self._append_text(f"> {text}\n")
 
     def _send_ctrl_c(self):
         if self._pty:
