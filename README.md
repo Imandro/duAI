@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/duAI.png" alt="duAI Logo" width="200">
+  <img src="assets/duAI.png" alt="duAI Logo" width="300">
 </p>
 
 <h1 align="center">duAI — Don't Use AI</h1>
@@ -24,7 +24,7 @@
 
 | | |
 |---|---|
-| **Exe portable** | [duAI.exe](https://github.com/Imandro/duAI/blob/master/dist/duAI.exe) — 47 MB, sin instalacion, copiable a USB |
+| **Exe portable** | [duAI.exe](https://github.com/Imandro/duAI/blob/master/dist/duAI.exe) — sin instalacion, copiable a USB |
 | **Codigo fuente** | [github.com/Imandro/duAI](https://github.com/Imandro/duAI) |
 | **Requisitos** | Windows 10/11, Python 3.10+ (solo para ejecutar desde codigo) |
 
@@ -35,12 +35,16 @@
 duAI escanea tu equipo y encuentra **todo** lo que las apps de IA dejan detras:
 
 - **Apps de escritorio**: ChatGPT, Claude, Copilot, Cursor, Windsurf, Ollama, LM Studio, GPT4All, Perplexity
+- **Herramientas CLI**: OpenCode, Codex, Claude Code, Aider, HuggingFace, Jan, Continue
 - **Navegadores**: historial de IA en Chrome, Edge, Brave, Firefox (borra solo sitios de IA, conserva lo demas)
 - **Registro de Windows**: UserAssist, MuiCache, RunMRU, MRULists
-- **DNS y hosts**: cache DNS, dominios de telemetria de IA
-- **Portapapeles**: historial de copias
+- **DNS y portapapeles**: cache DNS real, dominios de telemetria, historial de copias
 - **Cronologia y ubicacion**: Windows Timeline, datos de ubicacion
-- **Temporal y prefetch**: archivos temporales y prefetched
+- **Temp y prefetch**: archivos temporales y prefetched
+
+### Escaneo paralelo
+
+duAI escanea **6 objetivos simultaneamente** con ThreadPoolExecutor. Muestra progreso en tiempo real con barra de progreso, tiempo transcurrido y boton de cancelar.
 
 ### Modos de limpieza
 
@@ -80,23 +84,6 @@ Widget always-on-top que se puede arrastrar por la pantalla:
 - Activalo con `widget si` o desde el menu de la bandeja
 - Persiste su posicion entre sesiones
 
-### Barra de comandos (CLI)
-
-Escribi comandos directamente en la parte inferior de la ventana:
-
-```
-> escanear
-> limpiar todo --modo=cuarentena --confirmar
-> sesion chatgpt
-> panico
-> tema oscuro
-> widget si
-> cerrarpestañas --confirmar
-> terminal dir
-> apps
-> desinstalar ollama --confirmar
-```
-
 ---
 
 ## Pestanas
@@ -104,12 +91,101 @@ Escribi comandos directamente en la parte inferior de la ventana:
 | Pestana | Funcion |
 |---|---|
 | **RESUMEN** | Dashboard con stats animados, acceso rapido a escaneo y limpieza |
-| **ESCANEO** | Tabla de 25+ objetivos con estado, tamano, exportacion TXT/CSV |
+| **ESCANEO** | Tabla de 30+ objetivos con progreso paralelo, estado, tamano, exportacion TXT/CSV |
 | **LIMPIEZA** | Seleccion granular, vista previa, cuarentena, delta antes/despues |
-| **SESION** | Navegacion IA en perfil temporal destruido al cerrar |
+| **SESION** | Navegacion IA en perfil temporal + sesiones CLI seguras con sandbox |
 | **PANICO** | Limpieza total silenciosa con destino configurable |
 | **AJUSTES** | Contrasena, exclusiones, modo sigilo, cuarentena, hosts, programador |
-| **TERMINAL** | Consola del sistema integrada — ejecuta comandos directamente |
+| **TERMINAL** | Consola PTY real con integracion de herramientas CLI aisladas |
+
+---
+
+## Sesiones CLI seguras
+
+Ejecuta herramientas de IA de consola en un **entorno aislado**. Todo lo que escriban queda dentro del sandbox. Al terminar, se borran los rastros automaticamente.
+
+### Herramientas soportadas
+
+| Herramienta | Comando | Que hace |
+|---|---|---|
+| **OpenCode** | `opencode` | Terminal AI interactiva |
+| **Claude Code** | `claude` | Asistente de codigo de Anthropic |
+| **Codex CLI** | `codex` | Terminal AI de OpenAI |
+| **Gemini CLI** | `gemini` | Terminal AI de Google |
+| **Aider** | `aider` | Pair programming con IA |
+
+### Como funciona
+
+1. Selecciona la herramienta en la pestana SESION o TERMINAL
+2. Elige la carpeta de trabajo (opcional)
+3. Se crea un sandbox temporal con entorno aislado
+4. La herramienta corre con `USERPROFILE`, `APPDATA`, `HOME`, `XDG_*` redirigidos al sandbox
+5. Al salir: borrado del sandbox + purga de historial PowerShell
+6. Sandboxes huérfanos se limpian automáticamente al arrancar duAI
+
+```
+PS> (duAI sandbox) C:\Users\you\project> opencode
+PS> (duAI sandbox) C:\Users\you\project> claude
+```
+
+---
+
+## Terminal PTY
+
+duAI incluye un terminal real (PTY) que puede ejecutar cualquier app de consola:
+
+- **Pestana TERMINAL** — PowerShell completo con output en vivo
+- **Cajon CLI inferior** — escribe comandos directamente, los no-duAI se ejecutan en PowerShell
+- Soporta apps interactivas: `opencode`, `claude`, `codex`, `gemini cli`, etc.
+
+```
+PS> opencode
+PS> claude
+PS> gemini
+PS> Get-Process
+PS> dir
+```
+
+---
+
+## Comandos CLI
+
+| Comando | Descripcion |
+|---|---|
+| `ayuda` | Lista todos los comandos |
+| `escanear [filtro]` | Escanea y abre pestana ESCANEO |
+| `limpiar <sel>` | Limpia: `todo`, `apps`, `navegador`, `sistema`, o IDs |
+| `panico` | Limpieza total silenciosa |
+| `sesion <sitio>` | Abre ChatGPT/Claude/Gemini en perfil temporal |
+| `apps` | Lista apps de IA instaladas |
+| `desinstalar <app>` | Desinstala una app de IA |
+| `tema claro\|oscuro` | Cambia el tema |
+| `widget si\|no` | Activa/desactiva el boton flotante |
+| `exportar txt\|csv` | Exporta el ultimo escaneo |
+| `destino <modo>` | Cambia papelera/cuarentena/permanente |
+| `excluir <id>` / `permitir <id>` | Gestiona exclusiones |
+| `contrasena <clave>` | Establece contrasena de acceso |
+| `sigilo si\|no` | Activa modo sigilo |
+| `autoexit si\|no` | Limpieza automatica al cerrar |
+| `intervalo <min>` | Limpieza periodica |
+| `hotkey si\|no` | Tecla global Ctrl+Alt+D |
+| `hosts si\|no` | Bloqueo de telemetria via hosts |
+| `tarea crear\|quitar` | Tarea de Windows al iniciar sesion |
+| `cuarentena ver\|restaurar\|vaciar` | Gestiona cuarentena |
+| `cerrarpestañas` | Cierra pestañas de IA en navegadores Chromium |
+| `terminal [comando]` | Abre la terminal PTY o ejecuta un comando |
+| `purgarlogs` | Vacia bitacora y accesos recientes |
+| `salir` | Cierra duAI |
+
+---
+
+## Atajos
+
+| Atajo | Accion |
+|---|---|
+| `Ctrl+Alt+D` | Ejecuta panico (si esta activo en Ajustes) |
+| Click en bandeja | Abre duAI |
+| Doble-click en bandeja | Abre duAI |
 
 ---
 
@@ -147,6 +223,7 @@ Genera `dist\duAI.exe` — un unico archivo sin dependencias.
 - **Permisos**: PREFETCH y HOSTS requieren administrador; se omiten si no los hay
 - **Catalogo extensible**: edita `config/targets.json` para agregar o quitar objetivos
 - **PBKDF2**: la contrasena se almacena con hash, no en texto plano
+- **Sesiones aisladas**: las herramientas CLI corren en sandbox con env vars redirigidas
 
 ---
 
@@ -161,67 +238,9 @@ Los unicos archivos que crea:
 | `%LOCALAPPDATA%\duAI\config.json` | Preferencias y hash de contrasena |
 | `%LOCALAPPDATA%\duAI\logs\duai.log` | Bitacora local de acciones |
 | `%LOCALAPPDATA%\duAI\quarantine\` | Solo si usas cuarentena restaurable |
+| `%LOCALAPPDATA%\duAI\cli_sandbox\` | Temporal — se borra al salir de sesiones CLI |
 
 Con **modo sigilo** activo, la bitacora se vacia automaticamente en cada cierre. Desde Ajustes puedes eliminar todos los datos de duAI con un boton.
-
----
-
-## Comandos CLI
-
-| Comando | Descripcion |
-|---|---|
-| `ayuda` | Lista todos los comandos |
-| `escanear [filtro]` | Escanea y abre pestana ESCANEO |
-| `limpiar <sel>` | Limpia: `todo`, `apps`, `navegador`, `sistema`, o IDs |
-| `panico` | Limpieza total silenciosa |
-| `sesion <sitio>` | Abre ChatGPT/Claude/Gemini en perfil temporal |
-| `apps` | Lista apps de IA instaladas |
-| `desinstalar <app>` | Desinstala una app de IA |
-| `tema claro\|oscuro` | Cambia el tema |
-| `widget si\|no` | Activa/desactiva el boton flotante |
-| `exportar txt\|csv` | Exporta el ultimo escaneo |
-| `destino <modo>` | Cambia papelera/cuarentena/permanente |
-| `excluir <id>` / `permitir <id>` | Gestiona exclusiones |
-| `contrasena <clave>` | Establece contrasena de acceso |
-| `sigilo si\|no` | Activa modo sigilo |
-| `autoexit si\|no` | Limpieza automatica al cerrar |
-| `intervalo <min>` | Limpieza periodica |
-| `hotkey si\|no` | Tecla global Ctrl+Alt+D |
-| `hosts si\|no` | Bloqueo de telemetria via hosts |
-| `tarea crear\|quitar` | Tarea de Windows al iniciar sesion |
-| `cuarentena ver\|restaurar\|vaciar` | Gestiona cuarentena |
-| `cerrarpestañas` | Cierra pestañas de IA en navegadores Chromium |
-| `terminal [comando]` | Abre la terminal PTY o ejecuta un comando |
-| `purgarlogs` | Vacia bitacora y accesos recientes |
-| `salir` | Cierra duAI |
-
----
-
-## Terminal PTY
-
-duAI incluye un terminal real (PTY) que puede ejecutar cualquier app de consola:
-
-- **Pestaña TERMINAL** — PowerShell completo con output en vivo
-- **Cajón CLI inferior** — escribe comandos directamente, los no-duAI se ejecutan en PowerShell
-- Soporta apps interactivas: `opencode`, `claude`, `codex`, `gemini cli`, `antigravity cli`, etc.
-
-```
-PS> opencode
-PS> claude
-PS> gemini
-PS> Get-Process
-PS> dir
-```
-
----
-
-## Atajos
-
-| Atajo | Accion |
-|---|---|
-| `Ctrl+Alt+D` | Ejecuta panico (si esta activo en Ajustes) |
-| Click en bandeja | Abre duAI |
-| Doble-click en bandeja | Abre duAI |
 
 ---
 
@@ -230,11 +249,24 @@ PS> dir
 - **Python 3.14** + **PySide6** (Qt6)
 - Temas propios con sistema de paletas (sin dependencias de estilos)
 - Animaciones via QPropertyAnimation (sin dependencias extra)
+- **pywinpty** para terminal PTY real
+- **ThreadPoolExecutor** para escaneo paralelo
+- **SQLite read-only** para conteo real de visitas a sitios de IA
 - PyInstaller para exe portable
 - 25+ tests unitarios
 
 ---
 
+<p align="center">
+  <img src="assets/duAI_white.png" alt="duAI Logo Dark" width="200">
+</p>
+
 ## Licencia
 
 MIT
+
+---
+
+<p align="center">
+  <strong>by <a href="https://github.com/Imandro">Imandro</a></strong>
+</p>
