@@ -35,7 +35,7 @@ class DashboardView(QWidget):
             icon_path = os.path.join(base, "assets", n)
             if os.path.exists(icon_path):
                 pixmap = QPixmap(icon_path)
-                logo_label.setPixmap(pixmap.scaled(200, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+                logo_label.setPixmap(pixmap.scaled(227, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
                 break
         layout.addWidget(logo_label)
 
