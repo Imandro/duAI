@@ -139,15 +139,10 @@ class MainWindow(QMainWindow):
         side_layout.addWidget(self.theme_btn)
         side_layout.addStretch(1)
 
-        privacy_note = QLabel("SIN TELEMETRIA\nTODO LOCAL")
-        privacy_note.setObjectName("sideNote")
-        privacy_note.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        side_layout.addWidget(privacy_note)
-
-        github_link = QLabel('<a href="https://github.com/Imandro/duAI" style="color:#888;text-decoration:none;">github.com/Imandro/duAI</a>')
+        github_html = '<span style="color:#888;font-size:10px;">&#xf09b; Imandro</span>'
+        github_link = QLabel(github_html)
         github_link.setObjectName("githubLink")
         github_link.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        github_link.setOpenExternalLinks(True)
         side_layout.addWidget(github_link)
 
         body_layout.addWidget(sidebar)
@@ -217,11 +212,8 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(central)
 
-        status = QLabel("duAI · NO GUARDA RASTROS DE SU PROPIO USO")
-        status.setObjectName("barLabel")
-        status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.statusBar().setObjectName("statusBar")
-        self.statusBar().addWidget(status, 1)
+        self.statusBar().setVisible(False)
 
         self.navigate(0)
         self._setup_tray()
@@ -261,7 +253,7 @@ class MainWindow(QMainWindow):
             path = os.path.join(base, "assets", "duAI.png")
         if os.path.exists(path) and hasattr(self, "_logo_label"):
             pixmap = QPixmap(path)
-            self._logo_label.setPixmap(pixmap.scaled(120, 120, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+            self._logo_label.setPixmap(pixmap.scaled(160, 64, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
 
     def apply_ui_mode(self, mode):
         from PySide6.QtWidgets import QApplication

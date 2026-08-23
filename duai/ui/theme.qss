@@ -22,16 +22,10 @@ QMainWindow, QDialog {
     border-right: 1px solid __LINE__;
 }
 
-#sideNote {
-    color: __SOFT__;
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 2px;
-}
-
 #githubLink {
     color: #888;
-    font-size: 9px;
+    font-size: 10px;
+    font-family: "Segoe UI", "Arial", sans-serif;
 }
 
 #heroTitle {
@@ -196,12 +190,6 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 #statusBar {
     background: __BG__;
     border-top: 1px solid __LINE__;
-}
-
-#barLabel {
-    color: __SOFT__;
-    font-size: 10px;
-    letter-spacing: 2px;
 }
 
 #cliBar {
