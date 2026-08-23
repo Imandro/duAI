@@ -1,97 +1,203 @@
 # duAI — Don't Use AI
 
-Herramienta de escritorio para Windows orientada a la privacidad total del usuario.
-duAI detecta y elimina los rastros que las herramientas de inteligencia artificial
-dejan en tu computadora: datos, ubicacion, conversaciones y cualquier evidencia de uso de IA.
+> Herramienta de privacidad para Windows que detecta y elimina todos los rastros que las herramientas de IA dejan en tu computadora.
 
-Todo el procesamiento es **local**. duAI no tiene telemetria, no abre conexiones de red
-(mas alla de vaciar la cache DNS local) y no guarda rastros de su propio uso.
+**100% local. Sin telemetria. Sin cuentas. Sin conexion externa.**
 
-## Caracteristicas
+---
 
-- **Detector de rastros**: escanea tu equipo y muestra que rastros de IA existen,
-  con tamano, cantidad de elementos y estado de cada objetivo.
-- **Limpieza selectiva**: aplicaciones de IA de escritorio (ChatGPT, Claude, Copilot,
-  Cursor, Windsurf, Ollama, LM Studio, GPT4All, Perplexity), navegadores (Chrome,
-  Edge, Brave, Firefox) y sistema (temporales, recientes, registro, DNS, portapapeles,
-  cronologia, ubicacion).
-- **Historial quirurgico**: en Chrome/Edge/Brave/Firefox elimina solo las visitas a
-  sitios de IA (chatgpt.com, claude.ai, gemini.google.com, perplexity.ai, etc.)
-  conservando el resto de tu historial.
-- **Modo panico**: un boton que ejecuta limpieza total silenciosa. Tecla global
-  `Ctrl+Alt+D`, icono en bandeja y auto-limpieza al cerrar o por intervalo.
-- **Sesion protegida**: abre ChatGPT, Claude, Gemini, Perplexity, Copilot, Poe o
-  DeepSeek en un perfil temporal aislado del navegador; al cerrar, el perfil se
-  destruye por completo. Tu perfil real nunca toca la web de IA.
-- **Cuarentena restaurable**: ademas de papelera y borrado permanente, los rastros
-  pueden moverse a cuarentena y restaurarse despues si te arrepientes.
-- **Comparacion antes/después**: tras cada limpieza real se muestra el delta de
-  elementos y espacio liberado, incluida la estadistica LIBERADO ESTA SESION.
-- **Modo sigilo**: purga automatica de la propia bitacora de duAI y sus accesos
-  recientes al cerrar, o borrado total de todos sus datos locales desde Ajustes.
-- **Programador de Windows**: tarea opcional de limpieza en cada inicio de sesion.
-- **Bloqueo de telemetria**: redirige dominios de telemetria de IA via archivo hosts.
-- **Contrasena local**: acceso protegido con PBKDF2, sin cuentas ni nube.
-- **Reportes**: exportacion TXT/CSV del escaneo y de la comparacion antes/despues.
+## Descarga
 
-## Ejecutable portable (opcional)
+| | |
+|---|---|
+| **Exe portable** | [duAI.exe](https://github.com/Imandro/duAI/blob/master/dist/duAI.exe) — 47 MB, sin instalacion, copiable a USB |
+| **Codigo fuente** | [github.com/Imandro/duAI](https://github.com/Imandro/duAI) |
+| **Requisitos** | Windows 10/11, Python 3.10+ (solo para ejecutar desde codigo) |
 
-Genera `dist\duAI.exe`, un unico archivo sin instalacion, ideal para USB:
+---
 
-```powershell
-powershell -ExecutionPolicy Bypass -File build_exe.ps1
+## Que hace duAI
+
+duAI escanea tu equipo y encuentra **todo** lo que las apps de IA dejan detras:
+
+- **Apps de escritorio**: ChatGPT, Claude, Copilot, Cursor, Windsurf, Ollama, LM Studio, GPT4All, Perplexity
+- **Navegadores**: historial de IA en Chrome, Edge, Brave, Firefox (borra solo sitios de IA, conserva lo demas)
+- **Registro de Windows**: UserAssist, MuiCache, RunMRU, MRULists
+- **DNS y hosts**: cache DNS, dominios de telemetria de IA
+- **Portapapeles**: historial de copias
+- **Cronologia y ubicacion**: Windows Timeline, datos de ubicacion
+- **Temporal y prefetch**: archivos temporales y prefetched
+
+### Modos de limpieza
+
+| Modo | Que hace |
+|---|---|
+| **Papelera** | Envia archivos a la papelera de reciclaje (reversible) |
+| **Cuarentena** | Mueve archivos a una carpeta segura con manifesto, restaurable en cualquier momento |
+| **Permanente** | Borrado definitivo sin posibilidad de recuperacion |
+
+---
+
+## Interfaces
+
+### Temas puros
+
+Alterna entre **todo blanco** y **todo negro** con un clic. Sin mezclas, sin grises.
+
+- Boton en el sidebar
+- Comando: `tema claro` / `tema oscuro`
+- Se guarda y restaura al reiniciar
+
+### Animaciones
+
+- Fade de arranque (ventana aparece de negro)
+- Transiciones suaves entre pestanas
+- Cajon de comandos se despliega/oculta con slide
+- Cambio de tema con dip de opacidad
+- Contadores animados en el dashboard
+- Pulso continuo en el boton de panico
+
+### Boton de panico flotante
+
+Widget always-on-top que se puede arrastrar por la pantalla:
+
+- Click izquierdo: ejecuta panico
+- Click derecho: abrir duAI / ocultar widget / salir
+- Activalo con `widget si` o desde el menu de la bandeja
+- Persiste su posicion entre sesiones
+
+### Barra de comandos (CLI)
+
+Escribi comandos directamente en la parte inferior de la ventana:
+
+```
+> escanear
+> limpiar todo --modo=cuarentena --confirmar
+> sesion chatgpt
+> panico
+> tema oscuro
+> widget si
+> apps
+> desinstalar ollama --confirmar
 ```
 
-## Instalacion
+---
 
-Requiere Python 3.10 o superior.
+## Pestanas
+
+| Pestana | Funcion |
+|---|---|
+| **RESUMEN** | Dashboard con stats animados, acceso rapido a escaneo y limpieza |
+| **ESCANEO** | Tabla de 25+ objetivos con estado, tamano, exportacion TXT/CSV |
+| **LIMPIEZA** | Seleccion granular, vista previa, cuarentena, delta antes/despues |
+| **SESION** | Navegacion IA en perfil temporal destruido al cerrar |
+| **PANICO** | Limpieza total silenciosa con destino configurable |
+| **AJUSTES** | Contrasena, exclusiones, modo sigilo, cuarentena, hosts, programador |
+
+---
+
+## Instalacion (desde codigo)
 
 ```powershell
-cd Desktop\duAI
+git clone https://github.com/Imandro/duAI.git
+cd duAI
 python -m venv .venv
 .venv\Scripts\pip install -r requirements.txt
-```
-
-## Uso
-
-```powershell
 .venv\Scripts\python main.py
 ```
 
-Modo panico silencioso (sin interfaz):
+### Panico silencioso (sin interfaz)
 
 ```powershell
 .venv\Scripts\python main.py --panic
 ```
 
-### Pestañas
+### Generar exe portable
 
-| Pestana | Funcion |
-|---|---|
-| RESUMEN | Estado general, rastros detectados y espacio liberado |
-| ESCANEO | Detector de rastros con detalle por objetivo y exportacion |
-| LIMPIEZA | Seleccion granular, vista previa, cuarentena y delta antes/despues |
-| SESION | Navegacion IA con perfil temporal destruido al cerrar |
-| PANICO | Limpieza total, modo de destino, auto-limpieza, intervalo y hotkey |
-| AJUSTES | Contrasena, exclusiones, modo sigilo, cuarentena, hosts, programador |
+```powershell
+powershell -ExecutionPolicy Bypass -File build_exe.ps1
+```
 
-## Notas de seguridad
+Genera `dist\duAI.exe` — un unico archivo sin dependencias.
 
-- Por defecto la limpieza envia archivos a la **papelera de reciclaje**; el modo
-  permanente es opcional.
-- Los objetivos con procesos abiertos se marcan como BLOQUEADOS: cierra la aplicacion
-  correspondiente antes de limpiarla.
-- PREFETCH y el archivo HOSTS requieren permisos de administrador.
-- La vista previa esta activada por defecto en la pestana LIMPIEZA.
-- El catalogo de objetivos es extensible editando `config/targets.json`.
+---
+
+## Seguridad
+
+- **Destino por defecto**: papelera de reciclaje (no borra nada permanentemente sin que lo pidas)
+- **Vista previa activada**: en la pestana LIMPIEZA siempre ves que se va a borrar antes de ejecutar
+- **Objetivos bloqueados**: si una app esta corriendo, duAI la marca como BLOQUEADA y la salta
+- **Permisos**: PREFETCH y HOSTS requieren administrador; se omiten si no los hay
+- **Catalogo extensible**: edita `config/targets.json` para agregar o quitar objetivos
+- **PBKDF2**: la contrasena se almacena con hash, no en texto plano
+
+---
 
 ## Privacidad de la propia herramienta
 
-Los unicos archivos que duAI crea son:
+duAI no tiene telemetria, no abre conexiones de red y no guarda rastros de su propio uso.
 
-- `%LOCALAPPDATA%\duAI\config.json` — preferencias y hash de contrasena.
-- `%LOCALAPPDATA%\duAI\logs\duai.log` — bitacora local de acciones.
-- `%LOCALAPPDATA%\duAI\quarantine\` — solo si usas la cuarentena restaurable.
+Los unicos archivos que crea:
 
-Con el modo sigilo activo, la bitacora se vacia en cada cierre. Desde Ajustes puedes
-eliminar todos los datos de duAI con un boton.
+| Archivo | Contenido |
+|---|---|
+| `%LOCALAPPDATA%\duAI\config.json` | Preferencias y hash de contrasena |
+| `%LOCALAPPDATA%\duAI\logs\duai.log` | Bitacora local de acciones |
+| `%LOCALAPPDATA%\duAI\quarantine\` | Solo si usas cuarentena restaurable |
+
+Con **modo sigilo** activo, la bitacora se vacia automaticamente en cada cierre. Desde Ajustes puedes eliminar todos los datos de duAI con un boton.
+
+---
+
+## Comandos CLI
+
+| Comando | Descripcion |
+|---|---|
+| `ayuda` | Lista todos los comandos |
+| `escanear [filtro]` | Escanea y abre pestana ESCANEO |
+| `limpiar <sel>` | Limpia: `todo`, `apps`, `navegador`, `sistema`, o IDs |
+| `panico` | Limpieza total silenciosa |
+| `sesion <sitio>` | Abre ChatGPT/Claude/Gemini en perfil temporal |
+| `apps` | Lista apps de IA instaladas |
+| `desinstalar <app>` | Desinstala una app de IA |
+| `tema claro\|oscuro` | Cambia el tema |
+| `widget si\|no` | Activa/desactiva el boton flotante |
+| `exportar txt\|csv` | Exporta el ultimo escaneo |
+| `destino <modo>` | Cambia papelera/cuarentena/permanente |
+| `excluir <id>` / `permitir <id>` | Gestiona exclusiones |
+| `contrasena <clave>` | Establece contrasena de acceso |
+| `sigilo si\|no` | Activa modo sigilo |
+| `autoexit si\|no` | Limpieza automatica al cerrar |
+| `intervalo <min>` | Limpieza periodica |
+| `hotkey si\|no` | Tecla global Ctrl+Alt+D |
+| `hosts si\|no` | Bloqueo de telemetria via hosts |
+| `tarea crear\|quitar` | Tarea de Windows al iniciar sesion |
+| `cuarentena ver\|restaurar\|vaciar` | Gestiona cuarentena |
+| `purgarlogs` | Vacia bitacora y accesos recientes |
+| `salir` | Cierra duAI |
+
+---
+
+## Atajos
+
+| Atajo | Accion |
+|---|---|
+| `Ctrl+Alt+D` | Ejecuta panico (si esta activo en Ajustes) |
+| Click en bandeja | Abre duAI |
+| Doble-click en bandeja | Abre duAI |
+
+---
+
+## Tecnologia
+
+- **Python 3.14** + **PySide6** (Qt6)
+- Temas propios con sistema de paletas (sin dependencias de estilos)
+- Animaciones via QPropertyAnimation (sin dependencias extra)
+- PyInstaller para exe portable
+- 25+ tests unitarios
+
+---
+
+## Licencia
+
+MIT
