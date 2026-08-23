@@ -1,5 +1,7 @@
-from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QColor, QFont, QFontMetrics, QPainter, QPen, QBrush
+import time
+
+from PySide6.QtCore import Qt, QPoint, QTimer
+from PySide6.QtGui import QColor, QFont, QPainter, QPen, QBrush
 from PySide6.QtWidgets import QMenu, QWidget
 
 from ..utils.settings import get_settings
@@ -22,8 +24,8 @@ class PanicFloatWidget(QWidget):
         self._drag_start = QPoint()
         self._moved = False
         self._press_pos = QPoint()
-        self._last_click = 0.0
         self._hover = False
+        self._click_time = 0.0
 
         self.setMouseTracking(True)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -36,16 +38,13 @@ class PanicFloatWidget(QWidget):
 
     def paintEvent(self, event):
         s = min(self.width(), self.height())
-        cx, cy = s / 2, s / 2
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        # outer dark border
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(QBrush(QColor(30, 30, 30)))
         painter.drawEllipse(0, 0, s, s)
 
-        # red circle
         border = max(int(s * 0.04), 2)
         if self._hover:
             painter.setBrush(QBrush(QColor(210, 40, 40)))
@@ -53,7 +52,6 @@ class PanicFloatWidget(QWidget):
             painter.setBrush(QBrush(QColor(190, 35, 35)))
         painter.drawEllipse(border, border, s - border * 2, s - border * 2)
 
-        # text - scale font to always fit
         font_size = max(int(s * 0.25), 10)
         painter.setPen(QPen(QColor(255, 255, 255)))
         font = QFont("Segoe UI", font_size, QFont.Weight.Bold)
@@ -105,14 +103,21 @@ class PanicFloatWidget(QWidget):
             if self._moved:
                 event.accept()
                 return
-            import time
             now = time.time()
-            if now - self._last_click < 2.0:
+            if now - self._click_time < 0.35:
+                self._click_time = 0.0
+                self.mw.close()
                 event.accept()
                 return
-            self._last_click = now
-            self.mw.trigger_panic()
+            self._click_time = now
+            QTimer.singleShot(350, self._single_click)
             event.accept()
+
+    def _single_click(self):
+        if self._click_time == 0.0:
+            return
+        self._click_time = 0.0
+        self.mw.trigger_panic()
 
     def _menu(self, pos):
         menu = QMenu(self)
