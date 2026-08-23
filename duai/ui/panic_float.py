@@ -14,7 +14,8 @@ class PanicFloatWidget(QWidget):
         )
         self.mw = main_window
         self.setObjectName("floatFrame")
-        self.setFixedSize(132, 132)
+        size = get_settings().get("float_size") or 132
+        self.setFixedSize(size, size)
         self._drag_offset = None
         self._moved = False
 

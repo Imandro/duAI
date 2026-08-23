@@ -47,6 +47,7 @@ class SettingsView(QWidget):
         self._build_password(layout)
         self._build_exclusions(layout)
         self._build_stealth(layout)
+        self._build_float_widget(layout)
         self._build_uninstall(layout)
         self._build_quarantine(layout)
         self._build_hosts(layout)
@@ -187,6 +188,51 @@ class SettingsView(QWidget):
         row.addWidget(purge_btn)
         row.addStretch(1)
         box.addLayout(row)
+
+    def _build_float_widget(self, layout):
+        box = self._section(layout, "Boton flotante de panico")
+        self.float_check = QCheckBox("MOSTRAR BOTON FLOTANTE EN PANTALLA")
+        self.float_check.setChecked(bool(get_settings().get("float_visible")))
+        self.float_check.toggled.connect(self._toggle_float)
+        box.addWidget(self.float_check)
+        hint = QLabel(
+            "Widget always-on-top que se puede arrastrar. "
+            "Click izquierdo ejecuta panico, click derecho muestra opciones."
+        )
+        hint.setObjectName("heroBody")
+        hint.setWordWrap(True)
+        box.addWidget(hint)
+
+        size_row = QHBoxLayout()
+        size_label = QLabel("TAMANO")
+        size_label.setObjectName("microLabel")
+        size_row.addWidget(size_label)
+        from PySide6.QtWidgets import QSpinBox
+        self.float_size = QSpinBox()
+        self.float_size.setRange(80, 300)
+        self.float_size.setSingleStep(10)
+        current = get_settings().get("float_size") or 132
+        self.float_size.setValue(current)
+        self.float_size.setSuffix(" px")
+        self.float_size.valueChanged.connect(self._change_float_size)
+        size_row.addWidget(self.float_size)
+        size_row.addStretch(1)
+        box.addLayout(size_row)
+
+    def _toggle_float(self, state):
+        get_settings().set("float_visible", bool(state))
+        if state:
+            self.mw.show_panic_float()
+        else:
+            self.mw.hide_panic_float()
+
+    def _change_float_size(self, value):
+        get_settings().set("float_size", value)
+        if self.mw._float_widget:
+            self.mw._float_widget.setFixedSize(value, value)
+            self.mw._float_widget.button.setStyleSheet(
+                f"font-size: {max(12, value // 5)}px;"
+            )
 
     def _build_uninstall(self, layout):
         from ..core.uninstaller import find_installed_ai_apps
