@@ -7,3 +7,6 @@ build/
 duai.log
 quarantine/
 logs/
+
+# Local Netlify folder
+.netlify
