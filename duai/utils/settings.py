@@ -17,9 +17,11 @@ DEFAULTS = {
     "self_purge_on_exit": False,
     "hosts_block": False,
     "ui_mode": "claro",
+    "language": "es",
     "float_visible": False,
     "float_x": None,
     "float_y": None,
+    "float_size": 160,
 }
 
 

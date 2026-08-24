@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.cleaner import CleanOptions, run_clean
+from ..i18n import t
 from .worker import Worker
 
 
@@ -28,16 +29,16 @@ class CleanView(QWidget):
         outer.setContentsMargins(64, 56, 64, 32)
         outer.setSpacing(16)
 
-        micro = QLabel("LIMPIEZA SELECTIVA")
+        micro = QLabel(t("clean.title"))
         micro.setObjectName("microLabel")
         outer.addWidget(micro)
 
         header = QHBoxLayout()
-        title = QLabel("Limpieza")
+        title = QLabel(t("clean.subtitle"))
         title.setStyleSheet("font-size: 22px; font-weight: 300;")
         header.addWidget(title)
         header.addStretch(1)
-        self.run_btn = QPushButton("EJECUTAR LIMPIEZA")
+        self.run_btn = QPushButton(t("clean.btn_exec"))
         self.run_btn.clicked.connect(self.run_clean)
         header.addWidget(self.run_btn)
         outer.addLayout(header)
@@ -53,18 +54,18 @@ class CleanView(QWidget):
         outer.addWidget(scroll, 1)
 
         options_row = QHBoxLayout()
-        self.preview_check = QCheckBox("VISTA PREVIA")
+        self.preview_check = QCheckBox(t("clean.preview"))
         self.preview_check.setChecked(True)
-        self.recycle_radio = QRadioButton("PAPELERA DE RECICLAJE")
+        self.recycle_radio = QRadioButton(t("clean.mode_recycle"))
         self.recycle_radio.setChecked(True)
-        self.quarantine_radio = QRadioButton("CUARENTENA RESTAURABLE")
-        self.permanent_radio = QRadioButton("ELIMINACION PERMANENTE")
+        self.quarantine_radio = QRadioButton(t("clean.mode_quarantine"))
+        self.permanent_radio = QRadioButton(t("clean.mode_permanent"))
         mode_group = QButtonGroup(self)
         for radio in (self.recycle_radio, self.quarantine_radio, self.permanent_radio):
             mode_group.addButton(radio)
-        select_all = QPushButton("SELECCIONAR TODO")
+        select_all = QPushButton(t("clean.select_all"))
         select_all.clicked.connect(lambda: self._set_all(True))
-        clear_all = QPushButton("DESELECCIONAR TODO")
+        clear_all = QPushButton(t("clean.deselect_all"))
         clear_all.clicked.connect(lambda: self._set_all(False))
         options_row.addWidget(self.preview_check)
         options_row.addWidget(self.recycle_radio)
@@ -79,7 +80,7 @@ class CleanView(QWidget):
         self.log_view.setReadOnly(True)
         self.log_view.setMinimumHeight(120)
         self.log_view.setMaximumHeight(180)
-        self.log_view.setPlaceholderText("El registro de limpieza aparecera aqui.")
+        self.log_view.setPlaceholderText(t("clean.placeholder"))
         outer.addWidget(self.log_view)
 
         self._build_groups()
@@ -142,7 +143,7 @@ class CleanView(QWidget):
             return
         selected = self.selected_ids()
         if not selected:
-            QMessageBox.information(self, "duAI", "Selecciona al menos un objetivo.")
+            QMessageBox.information(self, "duAI", t("clean.select_target"))
             return
         if self.permanent_radio.isChecked():
             mode = "permanent"
@@ -152,7 +153,7 @@ class CleanView(QWidget):
             mode = "recycle"
         preview = self.preview_check.isChecked()
         self.run_btn.setEnabled(False)
-        self.run_btn.setText("PROCESANDO...")
+        self.run_btn.setText(t("clean.processing"))
 
         def job():
             from ..core.scanner import scan_targets
@@ -183,12 +184,12 @@ class CleanView(QWidget):
 
         result, before_report, after_report = payload
         self.run_btn.setEnabled(True)
-        self.run_btn.setText("EJECUTAR LIMPIEZA")
+        self.run_btn.setText(t("clean.btn_exec"))
         self.log_view.append(result.summary())
         for line in result.lines:
             self.log_view.append(line)
         if not result.preview:
-            self.log_view.append("--- ANTES / DESPUES ---")
+            self.log_view.append(t("clean.before_after"))
             for line in diff_reports(before_report, after_report):
                 self.log_view.append(line)
             self.mw.session_freed_bytes += result.freed_bytes
@@ -197,5 +198,5 @@ class CleanView(QWidget):
 
     def _failed(self, message):
         self.run_btn.setEnabled(True)
-        self.run_btn.setText("EJECUTAR LIMPIEZA")
-        QMessageBox.warning(self, "duAI", "Error durante la limpieza: " + message)
+        self.run_btn.setText(t("clean.btn_exec"))
+        QMessageBox.warning(self, "duAI", t("clean.error") + message)

@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from ..i18n import t
 from ..utils.paths import fmt_bytes
 from .animations import count_to
 
@@ -39,16 +40,12 @@ class DashboardView(QWidget):
                 break
         layout.addWidget(logo_label)
 
-        layout.addWidget(self._micro("ESTADO"))
-        title = QLabel("Privacidad absoluta.")
+        layout.addWidget(self._micro(t("dash.status")))
+        title = QLabel(t("dash.hero"))
         title.setObjectName("heroTitle")
         layout.addWidget(title)
 
-        body = QLabel(
-            "duAI detecta y elimina los rastros que las herramientas de inteligencia "
-            "artificial dejan en tu equipo: aplicaciones, navegadores, registro, DNS, "
-            "portapapeles y cronologia. Todo se procesa localmente. Nada sale de tu computadora."
-        )
+        body = QLabel(t("dash.body"))
         body.setObjectName("heroBody")
         body.setWordWrap(True)
         body.setMaximumWidth(560)
@@ -60,17 +57,17 @@ class DashboardView(QWidget):
         stats_layout.setContentsMargins(0, 0, 0, 0)
         stats_layout.setSpacing(48)
 
-        self.stat_traces = self._stat(stats_layout, "RASTROS DETECTADOS", "0")
-        self.stat_size = self._stat(stats_layout, "ESPACIO EN RIESGO", "0 B")
-        self.stat_freed = self._stat(stats_layout, "LIBERADO ESTA SESION", "0 B")
-        self.stat_last = self._stat(stats_layout, "ULTIMO ESCANEO", "NUNCA")
+        self.stat_traces = self._stat(stats_layout, t("dash.traces"), "0")
+        self.stat_size = self._stat(stats_layout, t("dash.risk"), "0 B")
+        self.stat_freed = self._stat(stats_layout, t("dash.freed"), "0 B")
+        self.stat_last = self._stat(stats_layout, t("dash.last_scan"), t("dash.never"))
         layout.addWidget(self.stats_frame)
 
         layout.addSpacing(16)
         buttons = QHBoxLayout()
-        scan_btn = QPushButton("INICIAR ESCANEO")
+        scan_btn = QPushButton(t("dash.btn_scan"))
         scan_btn.clicked.connect(self._go_scan)
-        clean_btn = QPushButton("IR A LIMPIEZA")
+        clean_btn = QPushButton(t("dash.btn_clean"))
         clean_btn.clicked.connect(lambda: self.mw.navigate(2))
         buttons.addWidget(scan_btn)
         buttons.addWidget(clean_btn)
@@ -78,7 +75,7 @@ class DashboardView(QWidget):
         layout.addLayout(buttons)
         layout.addStretch(1)
 
-        footer = QLabel("SIN TELEMETRIA  ·  SIN CUENTAS  ·  SIN CONEXION EXTERNA")
+        footer = QLabel(t("dash.footer"))
         footer.setObjectName("statusLabel")
         layout.addWidget(footer)
 

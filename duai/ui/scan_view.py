@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core import reporter
+from ..i18n import t
 from ..core.scanner import (
     STATUS_ADMIN,
     STATUS_EMPTY,
@@ -51,25 +52,25 @@ class ScanView(QWidget):
         layout.setContentsMargins(64, 56, 64, 32)
         layout.setSpacing(16)
 
-        micro = QLabel("DETECTOR DE RASTROS")
+        micro = QLabel(t("scan.title"))
         micro.setObjectName("microLabel")
         layout.addWidget(micro)
 
         header = QHBoxLayout()
-        title = QLabel("Escaneo")
+        title = QLabel(t("scan.subtitle"))
         title.setStyleSheet("font-size: 22px; font-weight: 300;")
         header.addWidget(title)
         header.addStretch(1)
-        self.cancel_btn = QPushButton("CANCELAR")
+        self.cancel_btn = QPushButton(t("scan.cancel"))
         self.cancel_btn.setObjectName("cliHide")
         self.cancel_btn.setVisible(False)
         self.cancel_btn.clicked.connect(self._cancel_scan)
         header.addWidget(self.cancel_btn)
-        self.scan_btn = QPushButton("ESCANEAR")
+        self.scan_btn = QPushButton(t("scan.btn_scan"))
         self.scan_btn.clicked.connect(self.start_scan)
-        self.txt_btn = QPushButton("EXPORTAR TXT")
+        self.txt_btn = QPushButton(t("scan.export_txt"))
         self.txt_btn.clicked.connect(self._export_txt)
-        self.csv_btn = QPushButton("EXPORTAR CSV")
+        self.csv_btn = QPushButton(t("scan.export_csv"))
         self.csv_btn.clicked.connect(self._export_csv)
         for btn in (self.txt_btn, self.csv_btn):
             btn.setEnabled(False)
@@ -90,7 +91,7 @@ class ScanView(QWidget):
 
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
-            ["OBJETIVO", "CATEGORIA", "ESTADO", "ELEMENTOS", "TAMAÑO"]
+            [t("scan.col_target"), t("scan.col_category"), t("scan.col_status"), t("scan.col_items"), t("scan.col_size")]
         )
         self.table.verticalHeader().setVisible(False)
         self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
@@ -105,7 +106,7 @@ class ScanView(QWidget):
         self.table.setVisible(False)
         layout.addWidget(self.table, 1)
 
-        self.summary = QLabel("SIN DATOS. EJECUTA UN ESCANEO.")
+        self.summary = QLabel(t("scan.no_data"))
         self.summary.setObjectName("scanSummary")
         layout.addWidget(self.summary)
 
@@ -116,7 +117,7 @@ class ScanView(QWidget):
         if self._worker and self._worker.isRunning():
             return False
         self.scan_btn.setEnabled(False)
-        self.scan_btn.setText("ESCANEANDO...")
+        self.scan_btn.setText(t("scan.scanning"))
         self.cancel_btn.setVisible(True)
         self.txt_btn.setEnabled(False)
         self.csv_btn.setEnabled(False)
@@ -135,7 +136,7 @@ class ScanView(QWidget):
         exclusions = set(get_settings().get("exclusions") or [])
         targets = build_targets(exclusions=exclusions)
         self._target_count = len(targets)
-        self.progress_label.setText(f"0/{self._target_count} objetivos")
+        self.progress_label.setText(t("scan.progress", current=0, total=self._target_count))
 
         def job():
             from ..core.scanner import scan_targets_parallel
@@ -157,14 +158,14 @@ class ScanView(QWidget):
             self.progress_bar.setValue(current)
         elapsed = time.time() - self._start_time
         self.progress_label.setText(
-            f"{current}/{total} objetivos · {elapsed:.1f}s"
+            t("scan.progress_time", current=current, total=total, elapsed=elapsed)
         )
 
     def _tick_elapsed(self):
         if self._worker and self._worker.isRunning():
             elapsed = time.time() - self._start_time
             self.progress_label.setText(
-                f"{self.progress_bar.value()}/{self._target_count} objetivos · {elapsed:.1f}s"
+                t("scan.progress_time", current=self.progress_bar.value(), total=self._target_count, elapsed=elapsed)
             )
 
     def _cancel_scan(self):
@@ -174,7 +175,7 @@ class ScanView(QWidget):
 
     def _scan_btn_reset(self):
         self.scan_btn.setEnabled(True)
-        self.scan_btn.setText("ESCANEAR")
+        self.scan_btn.setText(t("scan.btn_scan"))
         self.cancel_btn.setVisible(False)
         if hasattr(self, "_elapsed_timer_obj") and self._elapsed_timer_obj:
             self._elapsed_timer_obj.stop()
@@ -190,7 +191,7 @@ class ScanView(QWidget):
         elapsed = time.time() - self._start_time
         found = len(report.found_entries)
         self.summary.setText(
-            f"{found} OBJETIVOS CON RASTROS · {report.total_bytes} BYTES · {elapsed:.1f}s · {report.scanned_at}"
+            t("scan.done", found=found, bytes=report.total_bytes, elapsed=elapsed, time=report.scanned_at)
         )
         self.progress_label.setText("")
         self.progress_bar.setValue(self.progress_bar.maximum())
@@ -198,7 +199,7 @@ class ScanView(QWidget):
 
     def _scan_failed(self, message):
         self._scan_btn_reset()
-        QMessageBox.warning(self, "duAI", "Error durante el escaneo: " + message)
+        QMessageBox.warning(self, "duAI", t("scan.error") + message)
 
     def _fill_table(self, report):
         entries = sorted(report.entries, key=lambda e: e.status != STATUS_FOUND)
@@ -232,11 +233,11 @@ class ScanView(QWidget):
                 lines = [entry.target.detail or "", ""]
                 lines += [item.path for item in entry.items[:40]]
                 if len(entry.items) > 40:
-                    lines.append(f"... y {len(entry.items) - 40} mas")
+                    lines.append(t("scan.more", count=len(entry.items) - 40))
                 box = QMessageBox(self)
                 box.setWindowTitle(entry.target.name)
                 browser = QTextBrowser()
-                browser.setPlainText("\n".join(lines) or "Sin rutas")
+                browser.setPlainText("\n".join(lines) or t("scan.no_paths"))
                 box.layout().addWidget(browser)
                 box.exec()
                 return
@@ -244,14 +245,14 @@ class ScanView(QWidget):
     def _export_txt(self):
         if not self.report:
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Exportar TXT", "duai_reporte.txt", "TXT (*.txt)")
+        path, _ = QFileDialog.getSaveFileName(self, t("scan.export_title_txt"), "duai_reporte.txt", "TXT (*.txt)")
         if path:
             reporter.save_report_txt(self.report, path)
 
     def _export_csv(self):
         if not self.report:
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Exportar CSV", "duai_reporte.csv", "CSV (*.csv)")
+        path, _ = QFileDialog.getSaveFileName(self, t("scan.export_title_csv"), "duai_reporte.csv", "CSV (*.csv)")
         if path:
             reporter.save_report_csv(self.report, path)
 
