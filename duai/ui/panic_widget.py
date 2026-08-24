@@ -13,14 +13,15 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.panic import format_result_summary, perform_panic
+from ..i18n import t
 from ..utils.settings import get_settings
 from .animations import Pulsing
 from .worker import Worker
 
 MODES = [
-    ("recycle", "PAPELERA DE RECICLAJE"),
-    ("quarantine", "CUARENTENA RESTAURABLE"),
-    ("permanent", "ELIMINACION PERMANENTE"),
+    ("recycle", t("clean.mode_recycle")),
+    ("quarantine", t("clean.mode_quarantine")),
+    ("permanent", t("clean.mode_permanent")),
 ]
 
 
@@ -35,25 +36,21 @@ class PanicWidget(QWidget):
         layout.setContentsMargins(64, 56, 64, 32)
         layout.setSpacing(16)
 
-        micro = QLabel("RESPUESTA INMEDIATA")
+        micro = QLabel(t("panic.response"))
         micro.setObjectName("microLabel")
         layout.addWidget(micro)
 
-        title = QLabel("Modo panico")
+        title = QLabel(t("panic.mode"))
         title.setStyleSheet("font-size: 22px; font-weight: 300;")
         layout.addWidget(title)
 
-        caption = QLabel(
-            "Ejecuta una limpieza total silenciosa de todos los objetivos activos: "
-            "aplicaciones de IA, historial de IA en navegadores, registro, DNS, portapapeles, "
-            "cronologia y ubicacion. Sin ventanas de confirmacion."
-        )
+        caption = QLabel(t("panic.desc"))
         caption.setWordWrap(True)
         caption.setObjectName("heroBody")
         caption.setMaximumWidth(560)
         layout.addWidget(caption)
 
-        self.panic_btn = QPushButton("PANICO")
+        self.panic_btn = QPushButton(t("panic.btn"))
         self.panic_btn.setObjectName("panicButton")
         self.panic_btn.setCursor(self.cursor())
         self.panic_btn.clicked.connect(self.trigger_panic)
@@ -62,7 +59,7 @@ class PanicWidget(QWidget):
         self._pulse = Pulsing(self.panic_btn, low=0.6, duration=1500)
 
         options = QHBoxLayout()
-        mode_label = QLabel("DESTINO")
+        mode_label = QLabel(t("panic.destination"))
         mode_label.setObjectName("microLabel")
         options.addWidget(mode_label)
         self.mode_group = QButtonGroup(self)
@@ -78,18 +75,18 @@ class PanicWidget(QWidget):
         layout.addLayout(options)
 
         auto_row = QHBoxLayout()
-        self.auto_exit_check = QCheckBox("AUTO-LIMPIEZA AL CERRAR duAI")
+        self.auto_exit_check = QCheckBox(t("panic.auto_clean"))
         self.auto_exit_check.setChecked(bool(settings.get("auto_clean_on_exit")))
         self.auto_exit_check.toggled.connect(self._save_auto_exit)
-        interval_label = QLabel("INTERVALO AUTOMATICO (MIN, 0=OFF)")
+        interval_label = QLabel(t("panic.interval"))
         interval_label.setObjectName("microLabel")
         self.interval_spin = QSpinBox()
         self.interval_spin.setRange(0, 1440)
         self.interval_spin.setValue(int(settings.get("auto_interval_min") or 0))
         self.interval_spin.valueChanged.connect(self._save_interval)
-        hotkey_label = QLabel("TECLA GLOBAL CTRL+ALT+D")
+        hotkey_label = QLabel(t("panic.hotkey"))
         hotkey_label.setObjectName("microLabel")
-        self.hotkey_check = QCheckBox("ACTIVA")
+        self.hotkey_check = QCheckBox(t("panic.hotkey_active"))
         self.hotkey_check.setChecked(bool(settings.get("hotkey_enabled", True)))
         self.hotkey_check.toggled.connect(self._save_hotkey)
         auto_row.addWidget(self.auto_exit_check)
@@ -102,12 +99,12 @@ class PanicWidget(QWidget):
         layout.addLayout(auto_row)
 
         widget_row = QHBoxLayout()
-        float_label = QLabel("BOTON FLOTANTE")
+        float_label = QLabel(t("panic.float"))
         float_label.setObjectName("microLabel")
-        self.float_check = QCheckBox("ACTIVAR WIDGET EN PANTALLA")
+        self.float_check = QCheckBox(t("panic.float_show"))
         self.float_check.setChecked(bool(settings.get("float_visible")))
         self.float_check.toggled.connect(self._save_float)
-        size_label = QLabel("TAMANO")
+        size_label = QLabel(t("panic.float_size"))
         size_label.setObjectName("microLabel")
         self.float_size = QSpinBox()
         self.float_size.setRange(80, 300)
@@ -128,9 +125,7 @@ class PanicWidget(QWidget):
         layout.addWidget(self._hint())
 
     def _hint(self):
-        hint = QLabel(
-            "NOTA: PREFETCH Y HOSTS REQUIEREN PERMISOS DE ADMINISTRADOR Y SE OMITE EN MODO PANICO SI NO LOS HAY."
-        )
+        hint = QLabel(t("panic.admin_note"))
         hint.setObjectName("statusLabel")
         return hint
 
@@ -152,7 +147,7 @@ class PanicWidget(QWidget):
             "recycle",
         )
         self.panic_btn.setEnabled(False)
-        self.panic_btn.setText("LIMPIANDO...")
+        self.panic_btn.setText(t("panic.cleaning"))
 
         def job():
             return perform_panic(mode=mode)
@@ -165,7 +160,7 @@ class PanicWidget(QWidget):
 
     def _done(self, result):
         self.panic_btn.setEnabled(True)
-        self.panic_btn.setText("PANICO")
+        self.panic_btn.setText(t("panic.btn"))
         self._pulse.start()
         self.result_view.setPlainText(format_result_summary(result))
         self.mw.session_freed_bytes += result.freed_bytes
@@ -173,9 +168,9 @@ class PanicWidget(QWidget):
 
     def _failed(self, message):
         self.panic_btn.setEnabled(True)
-        self.panic_btn.setText("PANICO")
+        self.panic_btn.setText(t("panic.btn"))
         self._pulse.start()
-        QMessageBox.warning(self, "duAI", "Error en modo panico: " + message)
+        QMessageBox.warning(self, "duAI", t("panic.error") + message)
 
     def _save_mode(self):
         checked = next(r for r in self.mode_group.buttons() if r.isChecked())

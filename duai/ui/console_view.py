@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core import reporter, session as session_core
+from ..i18n import t
 from ..core.browser_tabs import close_ai_tabs, detect_cdp_browsers, find_ai_tabs
 from ..core.cleaner import CleanOptions
 from ..core.panic import perform_panic
@@ -83,11 +84,11 @@ def targets_for_filter(filtro):
         return targets
     category = CATEGORY_KEYS.get(filtro)
     return [
-        t for t in targets
-        if t.id == filtro
-        or (category and t.category == category)
-        or filtro in t.name.lower()
-        or filtro in t.category.lower()
+        target for target in targets
+        if target.id == filtro
+        or (category and target.category == category)
+        or filtro in target.name.lower()
+        or filtro in target.category.lower()
     ]
 
 
@@ -150,9 +151,9 @@ class CommandRouter:
                 for line in result.stderr.strip().splitlines():
                     self.out(f"[ERROR] {line}")
             if result.returncode != 0:
-                self.out(f"[codigo {result.returncode}]")
+                self.out(t("cli.code", code=result.returncode))
         except subprocess.TimeoutExpired:
-            self.out("[TIMEOUT] comando tardó más de 30 segundos")
+            self.out(t("cli.timeout"))
         except Exception as exc:
             self.out(f"[ERROR] {exc}")
 
@@ -160,26 +161,26 @@ class CommandRouter:
 
     def cmd_ayuda(self, args, flags):
         lines = [
-            "ESCANEAR [filtro]      detecta rastros y abre la pestana ESCANEO (filtro: apps, navegador, sistema, id)",
-            "LISTA [filtro]         objetivos del catalogo con sus ids",
-            "ESTADO                 resumen actual de duAI",
-            "LIMPIAR <sel>          sel: todo | apps | navegador | sistema | <id>...",
-            "                       --modo=papelera|cuarentena|permanente   --confirmar (sin esto: vista previa)",
-            "PANICO                 limpieza total silenciosa",
-            "SESION <sitio>         chatgpt claude gemini perplexity copilot poe deepseek (perfil temporal)",
-            "CERRARSESION           destruye la sesion protegida activa",
-            "CERRARPESTAÑAS         cierra pestañas de IA en navegadores Chromium (--confirmar)",
-            "TERMINAL [comando]     abre la terminal integrada o ejecuta un comando",
-            "APPS                   lista apps de IA instaladas en el sistema",
-            "DESINSTALAR <app>      --confirmar para ejecutar; sin ella solo muestra el comando",
-            "EXPORTAR txt|csv       guarda el ultimo escaneo en el escritorio",
+            t("cli.help_line.escanear"),
+            t("cli.help_line.lista"),
+            t("cli.help_line.estado"),
+            t("cli.help_line.limpiar"),
+            t("cli.help_line.limpiar_opts"),
+            t("cli.help_line.panico"),
+            t("cli.help_line.sesion"),
+            t("cli.help_line.cerrarsesion"),
+            t("cli.help_line.cerrarpestanas"),
+            t("cli.help_line.terminal"),
+            t("cli.help_line.apps"),
+            t("cli.help_line.desinstalar"),
+            t("cli.help_line.exportar"),
             "",
-            "DESTINO <modo> · EXCLUIR <id> · PERMITIR <id> · EXCLUIDOS",
-            "AUTOEXIT si|no · INTERVALO <min> · HOTKEY si|no · SIGILO si|no · TEMA claro|oscuro · WIDGET si|no",
-            "CONTRASENA <clave> · SINCONTRASENA · HOSTS si|no · TAREA crear|quitar",
-            "CUARENTENA ver|restaurar|vaciar · NAVEGADORES · PURGARLOGS · LIMPIARPANTALLA · SALIR",
+            t("cli.help_line.config1"),
+            t("cli.help_line.config2"),
+            t("cli.help_line.config3"),
+            t("cli.help_line.config4"),
         ]
-        self.out("COMANDOS DISPONIBLES")
+        self.out(t("cli.help_title"))
         for line in lines:
             self.out("  " + line)
 
@@ -188,26 +189,28 @@ class CommandRouter:
         report = getattr(self.mw, "last_report", None)
         if report:
             self.out(
-                f"ULTIMO ESCANEO : {report.scanned_at} · {len(report.found_entries)} con rastros · "
-                f"{fmt_bytes(report.total_bytes)}"
+                t("cli.last_scan", time=report.scanned_at, count=len(report.found_entries),
+                  bytes=fmt_bytes(report.total_bytes))
             )
         else:
-            self.out("ULTIMO ESCANEO : ninguno todavia (usa ESCANEAR)")
-        self.out(f"MODO DESTINO   : {_MODE_LABEL.get(settings.get('panic_mode'), 'papelera')}")
+            self.out(t("cli.last_scan_none"))
+        self.out(t("cli.dest_mode", mode=_MODE_LABEL.get(settings.get('panic_mode'), 'papelera')))
         self.out(
-            f"AUTO-LIMPIEZA  : cerrar={'si' if settings.get('auto_clean_on_exit') else 'no'}"
-            f" · intervalo={settings.get('auto_interval_min') or 0} min"
-            f" · hotkey={'si' if settings.get('hotkey_enabled', True) else 'no'}"
-            f" · sigilo={'si' if settings.get('self_purge_on_exit') else 'no'}"
+            t("cli.auto_status",
+              val='si' if settings.get('auto_clean_on_exit') else 'no',
+              min=settings.get('auto_interval_min') or 0,
+              val2='si' if settings.get('hotkey_enabled', True) else 'no',
+              val3='si' if settings.get('self_purge_on_exit') else 'no')
         )
         exclusions = settings.get("exclusions") or []
-        self.out(f"EXCLUIDOS      : {len(exclusions)}" + (f" ({', '.join(exclusions)})" if exclusions else ""))
+        self.out(t("cli.excluded", count=len(exclusions)) + (f" ({', '.join(exclusions)})" if exclusions else ""))
         self.out(
-            f"CUARENTENA     : {len(quarantined_items())} elementos · CONTRASENA: {'activa' if auth.has_password() else 'ninguna'}"
+            t("cli.quarantine", count=len(quarantined_items()),
+              pwd='activa' if auth.has_password() else 'ninguna')
         )
-        session_state = "ACTIVA · " + session_core.get_active_session().url if session_core.has_running_session() else "inactiva"
-        self.out(f"SESION PROTEGIDA: {session_state}")
-        self.out(f"LIBERADO ESTA SESION: {fmt_bytes(self.mw.session_freed_bytes)}")
+        session_state = t("cli.session_active") + " · " + session_core.get_active_session().url if session_core.has_running_session() else t("cli.session_inactive")
+        self.out(t("cli.session_state", state=session_state))
+        self.out(t("cli.freed", bytes=fmt_bytes(self.mw.session_freed_bytes)))
 
     def cmd_lista(self, args, flags):
         filtro = args[0].lower() if args else ""
@@ -217,15 +220,15 @@ class CommandRouter:
             label = entry["category"] + " " + entry["name"] + " " + entry["id"]
             if filtro and filtro not in label.lower():
                 continue
-            state = " [EXCLUIDO]" if entry["id"] in exclusions else ""
+            state = f" [{t('cli.excluded_label')}]" if entry["id"] in exclusions else ""
             self.out(f"  {entry['id']:<22} {entry['category']} · {entry['name']}{state}")
             shown += 1
-        self.out(f"-- {shown} objetivos")
+        self.out(f"-- {t('cli.targets_count', count=shown)}")
 
     def cmd_navegadores(self, args, flags):
         found = session_core.available_browsers()
         if not found:
-            self.out("No se encontro Chrome, Edge ni Brave.")
+            self.out(t("cli.no_chrome"))
             return
         for browser_id, path in found:
             self.out(f"  {browser_id:<8} {path}")
@@ -233,33 +236,33 @@ class CommandRouter:
     def cmd_cerrarpestañas(self, args, flags):
         browsers = detect_cdp_browsers()
         if not browsers:
-            self.out("No se detectaron navegadores Chromium corriendo.")
+            self.out(t("cli.no_browsers"))
             return
         ai_info = find_ai_tabs(browsers)
         has_ai = any(info["ai_tabs"] for info in ai_info)
         if not has_ai:
-            self.out("No hay pestañas de IA abiertas.")
+            self.out(t("cli.no_ai_tabs"))
             for info in ai_info:
-                note = info.get("note", f'{len(info.get("ai_tabs", []))} pestañas IA')
+                note = info.get("note", t("cli.ai_tabs", count=len(info.get("ai_tabs", []))))
                 self.out(f"  {info['browser']}: {note}")
             return
         for info in ai_info:
             tabs = info.get("ai_tabs", [])
             note = info.get("note", "")
             if tabs:
-                self.out(f"  {info['browser']}: {len(tabs)} pestañas de IA")
+                self.out(f"  {info['browser']}: {t('cli.ai_tabs', count=len(tabs))}")
                 for tab in tabs:
                     self.out(f"    - {tab['title'][:60]}  ({tab['url']})")
             elif note:
                 self.out(f"  {info['browser']}: {note}")
         if "--confirmar" in flags or "confirmar" in flags:
             report = close_ai_tabs(browsers)
-            self.out(f"Pestañas cerradas: {report['closed']}")
+            self.out(t("cli.tabs_closed", count=report['closed']))
             for b in report["browsers"]:
-                note = b.get("note", f'{b["closed"]} cerradas')
+                note = b.get("note", t("cli.tabs_closed", count=b["closed"]))
                 self.out(f"  {b['browser']}: {note}")
         else:
-            self.out("Anade --confirmar para cerrar las pestañas de IA.")
+            self.out(t("cli.tabs_confirm"))
 
     # ---------------- acciones principales ----------------
 
@@ -267,18 +270,18 @@ class CommandRouter:
         self.mw.navigate(1)
         started = self.mw.scan_view.start_scan()
         if started:
-            self.out("Escaneo iniciado. Resultados en la pestana ESCANEO.")
+            self.out(t("cli.scan_started"))
 
     def cmd_limpiar(self, args, flags):
         tokens = [a for a in args if not a.startswith("-")]
         if not tokens:
-            self.out("USO: limpiar todo|apps|navegador|sistema|<id>... [--modo=X] [--confirmar]")
+            self.out(t("cli.clean_usage"))
             return
         selected, unknown = resolve_selection(tokens)
         if unknown:
-            self.out("IDs desconocidos ignorados: " + ", ".join(unknown))
+            self.out(t("cli.unknown_ids") + ", ".join(unknown))
         if not selected:
-            self.out("Nada que limpiar con esa seleccion.")
+            self.out(t("cli.nothing_to_clean"))
             return
         raw_mode = flags.get("modo") or get_settings().get("panic_mode") or "recycle"
         mode = _MODE_MAP.get(raw_mode, raw_mode)
@@ -288,19 +291,19 @@ class CommandRouter:
         self.mw.navigate(2)
         applied = self.mw.clean_view.apply_cli(selected, mode, confirm)
         if applied:
-            verb = "LIMPIEZA REAL" if confirm else "VISTA PREVIA"
-            self.out(f"{verb} lanzada sobre {len(selected)} objetivos (destino: {_MODE_LABEL[mode]}).")
+            verb = t("cli.clean_real") if confirm else t("cli.clean_preview")
+            self.out(t("cli.clean_launched", verb=verb, count=len(selected), mode=_MODE_LABEL[mode]))
 
     def cmd_panico(self, args, flags):
         self.mw.navigate(4)
         if self.mw.panic_widget.trigger_panic():
-            self.out("MODO PANICO EN CURSO. Detalles en la pestana PANICO.")
+            self.out(t("cli.panic_running"))
         else:
-            self.out("[ocupado] ya hay un panico en marcha.")
+            self.out(t("cli.panic_busy"))
 
     def cmd_sesion(self, args, flags):
         if not args:
-            self.out("USO: sesion chatgpt|claude|gemini|perplexity|copilot|poe|deepseek")
+            self.out(t("cli.session_usage"))
             return
         self.mw.navigate(3)
         ok, message = self.mw.session_view.open_site(args[0])
@@ -322,12 +325,12 @@ class CommandRouter:
         apps = find_installed_ai_apps()
         self._last_apps = apps
         if not apps:
-            self.out("No hay aplicaciones de IA registradas en el sistema.")
+            self.out(t("cli.no_apps"))
             return
         for index, app in enumerate(apps):
-            quiet = "silenciable" if app["quiet_string"] else "asistido"
+            quiet = t("cli.silent") if app["quiet_string"] else t("cli.assisted")
             self.out(f"  [{index}] {app['name']}  ({quiet})")
-        self.out("-- usa DESINSTALAR <indice o nombre> [--confirmar]", )
+        self.out(t("cli.uninstall_hint"), )
 
     def _resolve_app(self, token):
         if not self._last_apps:
@@ -343,21 +346,21 @@ class CommandRouter:
 
     def cmd_desinstalar(self, args, flags):
         if not args:
-            self.out("USO: desinstalar <indice o nombre> [--confirmar]")
+            self.out(t("cli.uninstall_usage"))
             return
         token = args[0]
         app = self._resolve_app(token)
         if app is None:
-            self.out("APP NO ENCONTRADA. usa APPS para listar.")
+            self.out(t("cli.app_not_found"))
             return
         command = build_silent_command(app)
         if not command:
-            self.out("Esta app no expone comando de desinstalacion util.")
+            self.out(t("cli.app_no_uninstall"))
             return
         if not flags.get("confirmar"):
-            self.out("[SIMULACION] se ejecutaria:")
+            self.out(t("cli.simulation"))
             self.out(f"  {command}")
-            self.out("Anade --confirmar para desinstalar de verdad (y limpiar sus rastros despues).")
+            self.out(t("cli.uninstall_confirm_hint"))
             return
 
         def job():
@@ -372,37 +375,37 @@ class CommandRouter:
         def done(payload):
             name, ok, detail, cleaned = payload
             if ok:
-                self.out(f"[OK] {name} desinstalada ({detail}).")
+                self.out(t("cli.uninstalled", name=name, detail=detail))
                 if cleaned is not None:
                     self.out(
-                        f"     rastros posteriores: {cleaned.removed_items} elementos, "
-                        f"{fmt_bytes(cleaned.freed_bytes)} liberados"
+                        t("cli.traces_after", count=cleaned.removed_items,
+                          bytes=fmt_bytes(cleaned.freed_bytes))
                     )
                 self.mw.refresh_settings_page()
             else:
-                self.out(f"[FALLO] {name}: {detail}")
+                self.out(t("cli.uninstall_fail", name=name, detail=detail))
 
         from .worker import Worker
 
-        self.mw.run_cli_worker(job, done, "DESINSTALANDO...")
+        self.mw.run_cli_worker(job, done, t("cli.uninstalling"))
 
     # ---------------- configuracion ----------------
 
     def cmd_destino(self, args, flags):
         if not args:
-            self.out("USO: destino papelera|cuarentena|permanente")
+            self.out(t("cli.dest_usage"))
             return
         value = args[0].lower()
         if value not in MODES:
-            self.out("DESTINO INVALIDO. opciones: papelera, cuarentena, permanente")
+            self.out(t("cli.dest_invalid"))
             return
         get_settings().set("panic_mode", _MODE_MAP[value])
         self.mw.refresh_panic_page()
-        self.out(f"Modo de destino: {value}")
+        self.out(t("cli.dest_set", value=value))
 
     def cmd_excluir(self, args, flags):
         if not args:
-            self.out("USO: excluir <id>")
+            self.out(t("cli.exclude_usage"))
             return
         known = {e["id"] for e in list_all_entries()}
         exclusions = set(get_settings().get("exclusions") or [])
@@ -412,156 +415,156 @@ class CommandRouter:
                 exclusions.add(target_id)
                 added.append(target_id)
             else:
-                self.out(f"ID desconocido: {target_id}")
+                self.out(t("cli.exclude_unknown", id=target_id))
         get_settings().set("exclusions", sorted(exclusions))
         if added:
-            self.out("Excluidos (nunca se limpian): " + ", ".join(added))
+            self.out(t("cli.excluded_list") + ", ".join(added))
             self.mw.refresh_settings_page()
 
     def cmd_permitir(self, args, flags):
         if not args:
-            self.out("USO: permitir <id>")
+            self.out(t("cli.allow_usage"))
             return
         exclusions = set(get_settings().get("exclusions") or [])
-        removed = [t for t in args if t in exclusions]
-        for t in removed:
-            exclusions.discard(t)
+        removed = [x for x in args if x in exclusions]
+        for x in removed:
+            exclusions.discard(x)
         get_settings().set("exclusions", sorted(exclusions))
-        self.out("Vuelven a ser limpiables: " + (", ".join(removed) or "nada"))
+        self.out(t("cli.allow_restored") + (", ".join(removed) or t("cli.no_items")))
         if removed:
             self.mw.refresh_settings_page()
 
     def cmd_excluidos(self, args, flags):
         exclusions = get_settings().get("exclusions") or []
-        self.out(", ".join(exclusions) if exclusions else "Sin exclusiones.")
+        self.out(", ".join(exclusions) if exclusions else t("cli.no_exclusions"))
 
     def cmd_autoexit(self, args, flags):
         if not args:
-            self.out("USO: autoexit si|no")
+            self.out(t("cli.autoexit_usage"))
             return
         value = args[0].lower() in ("si", "sí", "yes", "1", "true")
         get_settings().set("auto_clean_on_exit", value)
-        self.out(f"Limpieza automatica al cerrar: {'activada' if value else 'desactivada'}")
+        self.out(t("cli.autoexit_set", val='activada' if value else 'desactivada'))
         self.mw.refresh_panic_page()
 
     def cmd_intervalo(self, args, flags):
         if not args:
-            self.out("USO: intervalo <minutos 0-1440>")
+            self.out(t("cli.interval_usage"))
             return
         try:
             minutes = max(0, min(1440, int(args[0])))
         except ValueError:
-            self.out("MINUTOS INVALIDOS")
+            self.out(t("cli.interval_invalid"))
             return
         get_settings().set("auto_interval_min", minutes)
         self.mw.restart_auto_timer()
         self.out(
-            f"Auto-limpieza periodica cada {minutes} minutos." if minutes else "Auto-limpieza periodica desactivada."
+            t("cli.interval_set", minutes=minutes) if minutes else t("cli.interval_off")
         )
         self.mw.refresh_panic_page()
 
     def cmd_hotkey(self, args, flags):
         if not args:
-            self.out("USO: hotkey si|no")
+            self.out(t("cli.hotkey_usage"))
             return
         value = args[0].lower() in ("si", "sí", "yes", "1", "true")
         get_settings().set("hotkey_enabled", value)
         self.mw.restart_hotkey()
-        self.out(f"Tecla global CTRL+ALT+D: {'activada' if value else 'desactivada'}")
+        self.out(t("cli.hotkey_set", val='activada' if value else 'desactivada'))
         self.mw.refresh_panic_page()
 
     def cmd_sigilo(self, args, flags):
         if not args:
-            self.out("USO: sigilo si|no")
+            self.out(t("cli.stealth_usage"))
             return
         value = args[0].lower() in ("si", "sí", "yes", "1", "true")
         get_settings().set("self_purge_on_exit", value)
-        self.out(f"Modo sigilo: {'activado' if value else 'desactivado'}")
+        self.out(t("cli.stealth_set", val='activado' if value else 'desactivado'))
         self.mw.refresh_settings_page()
 
     def cmd_tema(self, args, flags):
         if not args or args[0].lower() not in ("claro", "oscuro"):
-            self.out("USO: tema claro|oscuro")
+            self.out(t("cli.theme_usage"))
             return
         self.mw.apply_ui_mode(args[0].lower())
 
     def cmd_widget(self, args, flags):
         if not args or args[0].lower() not in ("si", "no"):
-            self.out("USO: widget si|no")
+            self.out(t("cli.widget_usage"))
             return
         if args[0].lower() == "si":
             self.mw.show_panic_float()
-            self.out("Boton flotante activado.")
+            self.out(t("cli.widget_on"))
         else:
             self.mw.hide_panic_float()
-            self.out("Boton flotante desactivado.")
+            self.out(t("cli.widget_off"))
 
     def cmd_contrasena(self, args, flags):
         if not args:
-            self.out("USO: contrasena <clave (min 4)>")
+            self.out(t("cli.pwd_usage"))
             return
         clave = args[0]
         if len(clave) < 4:
-            self.out("Usa al menos 4 caracteres.")
+            self.out(t("cli.pwd_min"))
             return
         auth.set_password(clave)
-        self.out("Contrasena establecida. Se pedira al abrir duAI.")
+        self.out(t("cli.pwd_set"))
 
     def cmd_sincontrasena(self, args, flags):
         auth.clear_password()
-        self.out("Contrasena eliminada.")
+        self.out(t("cli.pwd_removed"))
 
     def cmd_hosts(self, args, flags):
         if not args:
-            self.out("USO: hosts si|no")
+            self.out(t("cli.hosts_usage"))
             return
         enable = args[0].lower() in ("si", "sí", "yes", "1", "true")
         try:
             set_hosts_block(enable)
-            self.out(f"Bloqueo de telemetria en hosts: {'activado' if enable else 'desactivado'}")
+            self.out(t("cli.hosts_set", val='activado' if enable else 'desactivado'))
         except PermissionError:
-            self.out("[ERROR] sin permisos de administrador para modificar el archivo hosts.")
+            self.out(t("cli.hosts_admin_error"))
 
     def cmd_tarea(self, args, flags):
         if not args:
-            self.out("USO: tarea crear|quitar")
+            self.out(t("cli.task_usage"))
             return
         action = args[0].lower()
         if action == "crear":
-            self.out("Tarea de inicio de sesion creada." if create_logon_task() else "No se pudo crear la tarea.")
+            self.out(t("cli.task_created") if create_logon_task() else t("cli.task_create_fail"))
         elif action == "quitar":
-            self.out("Tarea eliminada." if remove_logon_task() else "No se pudo eliminar (puede que no exista).")
+            self.out(t("cli.task_deleted") if remove_logon_task() else t("cli.task_delete_fail"))
         else:
-            self.out("ACCION INVALIDA. usa crear o quitar.")
+            self.out(t("cli.task_invalid"))
 
     def cmd_cuarentena(self, args, flags):
         if not args:
-            self.out("USO: cuarentena ver|restaurar|vaciar")
+            self.out(t("cli.quarantine_usage"))
             return
         action = args[0].lower()
         if action == "ver":
             items = quarantined_items()
             if not items:
-                self.out("Cuarentena vacia.")
+                self.out(t("cli.quarantine_empty"))
                 return
             for item in items:
-                state = "" if item["available"] else " [PERDIDO]"
+                state = "" if item["available"] else f" {t('cli.quarantine_lost')}"
                 self.out(f"  {item['token']}  {item['original']}{state}")
         elif action == "restaurar":
             restored = restore_all()
-            self.out(f"{restored} elementos restaurados.")
+            self.out(t("cli.quarantine_restored", count=restored))
             self.mw.refresh_settings_page()
         elif action == "vaciar":
             removed = purge_quarantine()
-            self.out(f"Cuarentena vaciada ({removed} borrados definitivamente).")
+            self.out(t("cli.quarantine_emptied", count=removed))
             self.mw.refresh_settings_page()
         else:
-            self.out("ACCION INVALIDA. usa ver, restaurar o vaciar.")
+            self.out(t("cli.quarantine_invalid"))
 
     def cmd_exportar(self, args, flags):
         report = getattr(self.mw, "last_report", None)
         if report is None:
-            self.out("Aun no hay escaneo. Ejecuta ESCANEAR primero.")
+            self.out(t("cli.no_scan"))
             return
         fmt = args[0].lower() if args else "txt"
         desktop = expand("%USERPROFILE%/OneDrive/Desktop")
@@ -571,16 +574,16 @@ class CommandRouter:
             elif fmt == "txt":
                 path = reporter.save_report_txt(report, os.path.join(desktop, "duai_reporte.txt"))
             else:
-                self.out("FORMATO INVALIDO. usa txt o csv.")
+                self.out(t("cli.export_invalid"))
                 return
-            self.out(f"Reporte guardado: {path}")
+            self.out(t("cli.export_saved", path=path))
         except OSError as exc:
-            self.out(f"[ERROR] no se pudo guardar: {exc}")
+            self.out(t("cli.export_error", exc=exc))
 
     def cmd_purgarlogs(self, args, flags):
         purge_logs()
         removed = purge_own_recent_links()
-        self.out(f"Bitacora vaciada ({logs_dir()}) y {removed} accesos recientes eliminados.")
+        self.out(t("cli.purge_done", dir=logs_dir(), count=removed))
 
     def cmd_limpiarpantalla(self, args, flags):
         self.mw.cli_clear()
@@ -605,7 +608,7 @@ class CliBar(QWidget):
         mark.setObjectName("promptMark")
         self.input = QLineEdit()
         self.input.setObjectName("cliInput")
-        self.input.setPlaceholderText("comando...  (AYUDA para ver todos)")
+        self.input.setPlaceholderText(t("cli.placeholder"))
         self.input.returnPressed.connect(self._submit)
         self.input.installEventFilter(self)
         row.addWidget(mark)

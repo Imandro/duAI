@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt, QPoint, QTimer
 from PySide6.QtGui import QColor, QFont, QPainter, QPen, QBrush
 from PySide6.QtWidgets import QMenu, QWidget
 
+from ..i18n import t
 from ..utils.settings import get_settings
 
 
@@ -121,9 +122,9 @@ class PanicFloatWidget(QWidget):
 
     def _menu(self, pos):
         menu = QMenu(self)
-        open_action = menu.addAction("ABRIR duAI")
-        hide_action = menu.addAction("OCULTAR WIDGET")
-        quit_action = menu.addAction("SALIR de duAI")
+        open_action = menu.addAction(t("float.open"))
+        hide_action = menu.addAction(t("float.hide"))
+        quit_action = menu.addAction(t("float.quit"))
         chosen = menu.exec(self.mapToGlobal(pos))
         if chosen is open_action:
             self.mw.showNormal()

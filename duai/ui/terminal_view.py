@@ -3,6 +3,7 @@ import subprocess
 import threading
 import time
 
+from ..i18n import t
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (
     QFileDialog,
@@ -26,18 +27,15 @@ class TerminalView(QWidget):
         layout.setContentsMargins(32, 32, 32, 24)
         layout.setSpacing(12)
 
-        header = QLabel("TERMINAL")
+        header = QLabel(t("term.title"))
         header.setObjectName("microLabel")
         layout.addWidget(header)
 
-        title = QLabel("Herramientas de IA")
+        title = QLabel(t("term.subtitle"))
         title.setStyleSheet("font-size: 22px; font-weight: 300;")
         layout.addWidget(title)
 
-        hint = QLabel(
-            "Abre una sesion aislada de cualquier herramienta de IA en una ventana de "
-            "PowerShell real. Todo queda dentro del sandbox y se borra al salir."
-        )
+        hint = QLabel(t("term.hint"))
         hint.setObjectName("heroBody")
         hint.setWordWrap(True)
         hint.setMaximumWidth(560)
@@ -59,11 +57,11 @@ class TerminalView(QWidget):
         layout.addLayout(self.tool_bar)
 
         self.cwd_row = QHBoxLayout()
-        self.cwd_label = QLabel("CARPETA DE TRABAJO:")
+        self.cwd_label = QLabel(t("term.cwd"))
         self.cwd_label.setObjectName("microLabel")
         self.cwd_path = QLabel(os.path.expandvars("%USERPROFILE%"))
         self.cwd_path.setObjectName("heroBody")
-        self.cwd_btn = QPushButton("CAMBIAR")
+        self.cwd_btn = QPushButton(t("term.change"))
         self.cwd_btn.setObjectName("cliHide")
         self.cwd_btn.setFixedHeight(28)
         self.cwd_btn.clicked.connect(self._pick_cwd)
@@ -75,11 +73,11 @@ class TerminalView(QWidget):
         layout.addSpacing(8)
 
         status_row = QHBoxLayout()
-        self.session_status = QLabel("SIN SESION ACTIVA")
+        self.session_status = QLabel(t("term.no_session"))
         self.session_status.setObjectName("cliSessionIdle")
         status_row.addWidget(self.session_status)
         status_row.addStretch(1)
-        self.stop_btn = QPushButton("CERRAR SESION Y BORRAR RASTROS")
+        self.stop_btn = QPushButton(t("term.close_session"))
         self.stop_btn.setObjectName("cliHide")
         self.stop_btn.setVisible(False)
         self.stop_btn.clicked.connect(self._stop_session)
@@ -88,16 +86,13 @@ class TerminalView(QWidget):
 
         layout.addStretch(1)
 
-        info = QLabel(
-            "PowerShell se abre en una ventana real con entorno aislado. "
-            "Al cerrar la ventana se borraran automaticamente los rastros."
-        )
+        info = QLabel(t("term.info"))
         info.setObjectName("hintLabel")
         info.setWordWrap(True)
         layout.addWidget(info)
 
     def _pick_cwd(self):
-        d = QFileDialog.getExistingDirectory(self, "Seleccionar carpeta de trabajo")
+        d = QFileDialog.getExistingDirectory(self, t("term.pick_folder"))
         if d:
             self.cwd_path.setText(d)
 
@@ -109,7 +104,7 @@ class TerminalView(QWidget):
             return
 
         if self._cli_session and self._cli_session.get("process"):
-            QMessageBox.information(self, "duAI", "Cierra la sesion actual primero.")
+            QMessageBox.information(self, "duAI", t("term.close_first"))
             return
 
         cwd = self.cwd_path.text()
@@ -122,10 +117,10 @@ class TerminalView(QWidget):
         ps_cmd = (
             f'Set-Location "{cwd}"; '
             f'Write-Host "========================================" -ForegroundColor DarkRed; '
-            f'Write-Host "  duAI SESION SEGURA: {tool["name"]}" -ForegroundColor Red; '
+            f'Write-Host "  {t("term.ps_banner", tool=tool["name"])}" -ForegroundColor Red; '
             f'Write-Host "  Sandbox: {sandbox}" -ForegroundColor DarkGray; '
             f'Write-Host "  CWD: {cwd}" -ForegroundColor DarkGray; '
-            f'Write-Host "  Al cerrar esta ventana se borrara todo." -ForegroundColor DarkRed; '
+            f'Write-Host "  {t("term.ps_warning")}" -ForegroundColor DarkRed; '
             f'Write-Host "========================================" -ForegroundColor DarkRed; '
             f'Write-Host ""'
         )
@@ -149,7 +144,7 @@ class TerminalView(QWidget):
                 "start_time": time.time(),
             }
 
-            self.session_status.setText(f"ACTIVA: {tool['name'].upper()}")
+            self.session_status.setText(t("term.active", tool=tool['name'].upper()))
             self.session_status.setObjectName("cliSessionActive")
             self.session_status.style().unpolish(self.session_status)
             self.session_status.style().polish(self.session_status)
@@ -160,7 +155,7 @@ class TerminalView(QWidget):
             self._watch_process()
 
         except Exception as exc:
-            QMessageBox.warning(self, "duAI", f"No se pudo iniciar: {exc}")
+            QMessageBox.warning(self, "duAI", t("term.start_error", exc=exc))
 
     def _watch_process(self):
         def _check():
@@ -190,7 +185,7 @@ class TerminalView(QWidget):
             QTimer.singleShot(0, self._reset_ui)
 
     def _reset_ui(self):
-        self.session_status.setText("SIN SESION ACTIVA")
+        self.session_status.setText(t("term.no_session"))
         self.session_status.setObjectName("cliSessionIdle")
         self.session_status.style().unpolish(self.session_status)
         self.session_status.style().polish(self.session_status)

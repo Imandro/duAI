@@ -37,6 +37,7 @@ from .ui.scan_view import ScanView
 from .ui.settings_view import SettingsView
 from .ui.session_view import SessionView
 from .ui.terminal_view import TerminalView
+from .i18n import t
 from .utils.settings import get_settings
 
 
@@ -49,15 +50,15 @@ class LoginDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(40, 32, 40, 24)
         layout.setSpacing(14)
-        micro = QLabel("ACCESO RESTRINGIDO")
+        micro = QLabel(t("app.restricted"))
         micro.setObjectName("microLabel")
         layout.addWidget(micro)
         self.input = QLineEdit()
         self.input.setEchoMode(QLineEdit.EchoMode.Password)
-        self.input.setPlaceholderText("Contrasena")
+        self.input.setPlaceholderText(t("app.password"))
         self.input.returnPressed.connect(self._verify)
         layout.addWidget(self.input)
-        btn = QPushButton("ENTRAR")
+        btn = QPushButton(t("app.enter"))
         btn.clicked.connect(self._verify)
         layout.addWidget(btn)
         self.error = QLabel("")
@@ -68,12 +69,12 @@ class LoginDialog(QDialog):
         if auth.verify_password(self.input.text()):
             self.accept()
         else:
-            self.error.setText("CONTRASENA INCORRECTA")
+            self.error.setText(t("app.wrong_password"))
             self.input.selectAll()
 
 
 class MainWindow(QMainWindow):
-    NAV = ["RESUMEN", "ESCANEO", "LIMPIEZA", "SESION", "PANICO", "AJUSTES", "TERMINAL"]
+    NAV = [t("nav.resumen"), t("nav.escaneo"), t("nav.limpieza"), t("nav.sesion"), t("nav.panico"), t("nav.ajustes"), t("nav.terminal")]
 
     def __init__(self):
         super().__init__()
@@ -193,9 +194,9 @@ class MainWindow(QMainWindow):
         inner_drawer.setSpacing(4)
         drawer_header = QHBoxLayout()
         drawer_header.setContentsMargins(48, 0, 48, 0)
-        cli_title = QLabel("SALIDA DE COMANDOS")
+        cli_title = QLabel(t("app.cmd_output"))
         cli_title.setObjectName("cliTitle")
-        hide_btn = QPushButton("OCULTAR")
+        hide_btn = QPushButton(t("app.hide"))
         hide_btn.setObjectName("cliHide")
         hide_btn.setFixedHeight(22)
         hide_btn.clicked.connect(self._hide_drawer)
@@ -238,7 +239,7 @@ class MainWindow(QMainWindow):
         self.stack.setCurrentIndexAnimated(index)
 
     def _theme_btn_label(self):
-        return "MODO OSCURO" if get_settings().get("ui_mode") != "oscuro" else "MODO CLARO"
+        return t("app.theme_dark") if get_settings().get("ui_mode") != "oscuro" else t("app.theme_light")
 
     def _update_logo(self):
         from .ui.theme import current_mode
@@ -273,7 +274,7 @@ class MainWindow(QMainWindow):
                 self._float_widget.setStyleSheet("")
 
         theme_dip(self, duration=320, on_mid=_mid)
-        self.cli_output(f"Tema aplicado: {mode}.")
+        self.cli_output(t("app.theme_applied", mode=mode))
         self.cli_drawer.verticalScrollBar().setValue(self.cli_drawer.verticalScrollBar().maximum())
 
     def refresh_settings_page(self):
@@ -310,7 +311,7 @@ class MainWindow(QMainWindow):
     def cli_clear(self):
         self.cli_drawer.clear()
 
-    def run_cli_worker(self, job, on_done, busy_note="PROCESANDO..."):
+    def run_cli_worker(self, job, on_done, busy_note=t("app.processing")):
         from .ui.worker import Worker
 
         self._cli_workers = getattr(self, "_cli_workers", [])
@@ -341,17 +342,17 @@ class MainWindow(QMainWindow):
     def _setup_tray(self):
         self.tray = QSystemTrayIcon(self._make_tray_icon(), self)
         menu = QMenu()
-        open_action = QAction("ABRIR duAI", self)
+        open_action = QAction(t("app.tray_open"), self)
         open_action.triggered.connect(self.showNormal)
-        scan_action = QAction("ESCANEAR AHORA", self)
+        scan_action = QAction(t("app.tray_scan"), self)
         scan_action.triggered.connect(self._tray_scan)
-        panic_action = QAction("PANICO", self)
+        panic_action = QAction(t("app.tray_panic"), self)
         panic_action.triggered.connect(self.trigger_panic)
-        self._tray_float_action = QAction("BOTON FLOTANTE", self)
+        self._tray_float_action = QAction(t("app.tray_float"), self)
         self._tray_float_action.setCheckable(True)
         self._tray_float_action.setChecked(bool(get_settings().get("float_visible")))
         self._tray_float_action.triggered.connect(self._toggle_float_from_tray)
-        quit_action = QAction("SALIR", self)
+        quit_action = QAction(t("app.tray_quit"), self)
         quit_action.triggered.connect(self.close)
         for action in (open_action, scan_action, panic_action, self._tray_float_action):
             menu.addAction(action)
@@ -432,7 +433,7 @@ class MainWindow(QMainWindow):
             self.session_freed_bytes += result.freed_bytes
             self.dashboard_view.refresh_stats()
             self.tray.showMessage(
-                "duAI", "Auto-limpieza completada.", QSystemTrayIcon.MessageIcon.NoIcon, 3000
+                "duAI", t("app.auto_clean_done"), QSystemTrayIcon.MessageIcon.NoIcon, 3000
             )
 
         worker = Worker(job)
