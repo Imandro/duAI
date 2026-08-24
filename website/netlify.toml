@@ -10,7 +10,7 @@
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://api.github.com"
 
 [[redirects]]
-  from = "https://duai.netlify.app"
-  to = "https://www.duai.netlify.app"
+  from = "https://www.duai.netlify.app"
+  to = "https://duai.netlify.app"
   status = 301
   force = true
