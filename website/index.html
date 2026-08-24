@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>duAI — Don't Use AI</title>
+    <meta name="description" content="Herramienta de privacidad para Windows que detecta y elimina todo rastro de uso de inteligencia artificial. 100% local, sin telemetria.">
+    <meta name="keywords" content="duAI, privacidad, AI, limpieza, Windows, chatgpt, claude, gemini">
+    <meta property="og:title" content="duAI — Don't Use AI">
+    <meta property="og:description" content="Elimina todo rastro de IA de tu computadora. 100% local. Sin telemetria.">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- NAV -->
+    <nav class="nav" id="nav">
+        <div class="nav-inner">
+            <a href="#" class="nav-logo">
+                <svg viewBox="80 180 340 120" class="logo-icon">
+                    <text x="250" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="80" fill="currentColor">duAI</text>
+                </svg>
+            </a>
+            <div class="nav-links">
+                <a href="#features" data-i18n="nav.features">Caracteristicas</a>
+                <a href="#screenshots" data-i18n="nav.screenshots">Capturas</a>
+                <a href="#targets" data-i18n="nav.targets">Objetivos</a>
+                <a href="#download" data-i18n="nav.download">Descargar</a>
+                <a href="#faq" data-i18n="nav.faq">FAQ</a>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-lang" id="btn-lang" title="Cambiar idioma">ES</button>
+                <a href="https://github.com/Imandro/duAI" target="_blank" class="nav-github" id="nav-github">
+                    <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                    <span id="gh-stars">0</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="hero-badge" data-i18n="hero.badge">100% LOCAL &middot; SIN TELEMETRIA &middot; OPEN SOURCE</div>
+            <h1 class="hero-title">
+                <span class="hero-title-line">Don't</span>
+                <span class="hero-title-line">Use <span class="hero-ai">AI</span></span>
+            </h1>
+            <p class="hero-subtitle" data-i18n="hero.subtitle">
+                Herramienta de privacidad para Windows que detecta y elimina todo rastro de uso de inteligencia artificial de tu computadora.
+            </p>
+            <div class="hero-actions">
+                <a href="#download" class="btn btn-primary" data-i18n="hero.download">DESCARGAR duAI</a>
+                <a href="https://github.com/Imandro/duAI" target="_blank" class="btn btn-outline" data-i18n="hero.github">VER EN GITHUB</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-value" id="stat-stars">-</span>
+                    <span class="stat-label">Stars</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value" id="stat-forks">-</span>
+                    <span class="stat-label">Forks</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">30+</span>
+                    <span class="stat-label" data-i18n="hero.targets">Objetivos</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-value">0</span>
+                    <span class="stat-label" data-i18n="hero.connections">Conexiones</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section" id="features">
+        <div class="container">
+            <h2 class="section-title" data-i18n="features.title">Caracteristicas</h2>
+            <p class="section-subtitle" data-i18n="features.subtitle">Todo lo que necesitas para proteger tu privacidad de la IA.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    </div>
+                    <h3 data-i18n="features.scan.title">Escanear</h3>
+                    <p data-i18n="features.scan.desc">Analiza 30+ objetivos en paralelo. Detecta archivos, historial, registry, DNS y clipboard de herramientas de IA.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </div>
+                    <h3 data-i18n="features.clean.title">Limpiar</h3>
+                    <p data-i18n="features.clean.desc">Eliminacion selectiva o total. Modo reciclaje, cuarentena o permanente. Preview antes de ejecutar.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 9v2m0 4h.01M5.07 19H18.93A2 2 0 0020.82 16L13.9 3.46a2 2 0 00-3.8 0L3.18 16a2 2 0 001.89 3z"/></svg>
+                    </div>
+                    <h3 data-i18n="features.panic.title">Panico</h3>
+                    <p data-i18n="features.panic.desc">Boton de emergencia. Limpieza total silenciosa con un solo clic. Boton flotante always-on-top.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    </div>
+                    <h3 data-i18n="features.session.title">Sesion Protegida</h3>
+                    <p data-i18n="features.session.desc">Navegacion aislada para ChatGPT, Claude, Gemini y mas. Cookies y cache se destruyen al cerrar.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="4,17 10,11 4,5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                    </div>
+                    <h3 data-i18n="features.terminal.title">Terminal Aislada</h3>
+                    <p data-i18n="features.terminal.desc">Ejecuta OpenCode, Claude Code, Codex CLI y mas en un sandbox aislado. Al salir se borra todo.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3 data-i18n="features.stealth.title">Modo Sigilo</h3>
+                    <p data-i18n="features.stealth.desc">duAI se limpia a si mismo. Sin telemetria, sin cuentas, sin conexion externa. 100% local.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCREENSHOTS -->
+    <section class="section section-alt" id="screenshots">
+        <div class="container">
+            <h2 class="section-title" data-i18n="screenshots.title">Capturas</h2>
+            <p class="section-subtitle" data-i18n="screenshots.subtitle">Interfaz monochrome. Todo negro o todo blanco.</p>
+            <div class="screenshot-tabs">
+                <button class="screenshot-tab active" data-tab="dashboard" data-i18n="screenshots.tabs.dashboard">RESUMEN</button>
+                <button class="screenshot-tab" data-tab="scan" data-i18n="screenshots.tabs.scan">ESCANEO</button>
+                <button class="screenshot-tab" data-tab="clean" data-i18n="screenshots.tabs.clean">LIMPIEZA</button>
+                <button class="screenshot-tab" data-tab="panic" data-i18n="screenshots.tabs.panic">PANICO</button>
+                <button class="screenshot-tab" data-tab="session" data-i18n="screenshots.tabs.session">SESION</button>
+                <button class="screenshot-tab" data-tab="settings" data-i18n="screenshots.tabs.settings">AJUSTES</button>
+                <button class="screenshot-tab" data-tab="terminal" data-i18n="screenshots.tabs.terminal">TERMINAL</button>
+            </div>
+            <div class="screenshot-display">
+                <img src="assets/screenshots/dashboard.png" alt="duAI Dashboard" id="screenshot-img" class="screenshot-img">
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="section" id="how-it-works">
+        <div class="container">
+            <h2 class="section-title" data-i18n="how.title">Como funciona</h2>
+            <p class="section-subtitle" data-i18n="how.subtitle">Tres pasos simples para proteger tu privacidad.</p>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">01</div>
+                    <h3 data-i18n="how.step1.title">Escanear</h3>
+                    <p data-i18n="how.step1.desc">duAI analiza tu sistema en busca de archivos, historial, registro y rastros de herramientas de IA.</p>
+                </div>
+                <div class="step-arrow">&rarr;</div>
+                <div class="step">
+                    <div class="step-number">02</div>
+                    <h3 data-i18n="how.step2.title">Limpiar</h3>
+                    <p data-i18n="how.step2.desc">Selecciona que eliminar. Modo reciclaje para deshacer, cuarentena para revisar, o permanent para siempre.</p>
+                </div>
+                <div class="step-arrow">&rarr;</div>
+                <div class="step">
+                    <div class="step-number">03</div>
+                    <h3 data-i18n="how.step3.title">Proteger</h3>
+                    <p data-i18n="how.step3.desc">Activa limpieza automatica, modo sigilo, y el boton de panico para mantener tu privacidad siempre activa.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TARGETS -->
+    <section class="section section-alt" id="targets">
+        <div class="container">
+            <h2 class="section-title" data-i18n="targets.title">Objetivos Soportados</h2>
+            <p class="section-subtitle" data-i18n="targets.subtitle">30+ herramientas de IA y rastros del sistema.</p>
+            <div class="targets-grid">
+                <div class="target-group">
+                    <h3 data-i18n="targets.apps">Aplicaciones de Escritorio</h3>
+                    <div class="target-list">
+                        <span class="target-tag">ChatGPT</span>
+                        <span class="target-tag">Claude Desktop</span>
+                        <span class="target-tag">Windows Copilot</span>
+                        <span class="target-tag">Cursor</span>
+                        <span class="target-tag">Windsurf</span>
+                        <span class="target-tag">Ollama</span>
+                        <span class="target-tag">LM Studio</span>
+                        <span class="target-tag">GPT4All</span>
+                        <span class="target-tag">Perplexity</span>
+                        <span class="target-tag">OpenCode</span>
+                        <span class="target-tag">Codex CLI</span>
+                        <span class="target-tag">Claude Code</span>
+                        <span class="target-tag">Aider</span>
+                        <span class="target-tag">HuggingFace</span>
+                        <span class="target-tag">Jan.ai</span>
+                        <span class="target-tag">Continue</span>
+                        <span class="target-tag">Open WebUI</span>
+                    </div>
+                </div>
+                <div class="target-group">
+                    <h3 data-i18n="targets.browsers">Navegadores</h3>
+                    <div class="target-list">
+                        <span class="target-tag">Google Chrome</span>
+                        <span class="target-tag">Microsoft Edge</span>
+                        <span class="target-tag">Brave</span>
+                        <span class="target-tag">Firefox</span>
+                    </div>
+                </div>
+                <div class="target-group">
+                    <h3 data-i18n="targets.system">Sistema</h3>
+                    <div class="target-list">
+                        <span class="target-tag" data-i18n="targets.system.registry">Registry</span>
+                        <span class="target-tag" data-i18n="targets.system.dns">DNS Cache</span>
+                        <span class="target-tag" data-i18n="targets.system.clipboard">Clipboard</span>
+                        <span class="target-tag" data-i18n="targets.system.timeline">Timeline</span>
+                        <span class="target-tag" data-i18n="targets.system.recent">Archivos Recientes</span>
+                        <span class="target-tag" data-i18n="targets.system.prefetch">Prefetch</span>
+                        <span class="target-tag" data-i18n="targets.system.location">Ubicacion</span>
+                        <span class="target-tag" data-i18n="targets.system.temp">Archivos Temporales</span>
+                    </div>
+                </div>
+                <div class="target-group">
+                    <h3 data-i18n="targets.domains">Dominios Bloqueables</h3>
+                    <div class="target-list">
+                        <span class="target-tag">chatgpt.com</span>
+                        <span class="target-tag">openai.com</span>
+                        <span class="target-tag">claude.ai</span>
+                        <span class="target-tag">anthropic.com</span>
+                        <span class="target-tag">gemini.google.com</span>
+                        <span class="target-tag">perplexity.ai</span>
+                        <span class="target-tag">copilot.microsoft.com</span>
+                        <span class="target-tag">poe.com</span>
+                        <span class="target-tag">character.ai</span>
+                        <span class="target-tag">deepseek.com</span>
+                        <span class="target-tag">mistral.ai</span>
+                        <span class="target-tag">grok.com</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section class="section" id="download">
+        <div class="container">
+            <h2 class="section-title" data-i18n="download.title">Descargar</h2>
+            <p class="section-subtitle" data-i18n="download.subtitle">Un solo archivo. Sin instalacion. Sin dependencias.</p>
+            <div class="download-card">
+                <div class="download-info">
+                    <div class="download-version">
+                        <span class="download-label">duAI.exe</span>
+                        <span class="download-size" id="download-size">~50 MB</span>
+                    </div>
+                    <div class="download-requirements">
+                        <span>Windows 10/11</span>
+                        <span>&middot;</span>
+                        <span>Python 3.14+</span>
+                        <span>&middot;</span>
+                        <span data-i18n="download.reqs.admin">Algunas funciones requieren admin</span>
+                    </div>
+                </div>
+                <a href="https://github.com/Imandro/duAI/releases/latest" target="_blank" class="btn btn-primary btn-lg" data-i18n="download.btn">DESCARGAR ULTIMA VERSION</a>
+            </div>
+            <div class="download-alt">
+                <p data-i18n="download.alt">O compila desde el codigo fuente:</p>
+                <code class="download-code">git clone https://github.com/Imandro/duAI.git && cd duAI && python build_exe.ps1</code>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section section-alt" id="faq">
+        <div class="container">
+            <h2 class="section-title" data-i18n="faq.title">Preguntas Frecuentes</h2>
+            <div class="faq-list">
+                <details class="faq-item">
+                    <summary data-i18n="faq.q1.q">Que es duAI?</summary>
+                    <p data-i18n="faq.q1.a">duAI (Don't Use AI) es una herramienta de privacidad para Windows que detecta y elimina todo rastro de uso de inteligencia artificial de tu computadora. Escanea archivos, historial, registro, DNS y clipboard.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q2.q">Es seguro usar duAI?</summary>
+                    <p data-i18n="faq.q2.a">Totalmente. duAI es 100% local, no tiene telemetria, no se conecta a internet, y no necesita cuentas. El codigo es open source y puedes revisarlo en GitHub.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q3.q">Que elimina exactamente?</summary>
+                    <p data-i18n="faq.q3.a">Archivos de configuracion de IA, historial de navegacion relacionado con IA, entradas de registry, cache DNS, clipboard, timeline de Windows, archivos recientes y prefetch.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q4.q">Necesito permisos de administrador?</summary>
+                    <p data-i18n="faq.q4.a">La mayoria de funciones no requieren admin. Solo Prefetch y el bloqueo de hosts requieren permisos elevados, y se omiten automaticamente si no los tienes.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q5.q">Funciona con Windows 11?</summary>
+                    <p data-i18n="faq.q5.a">Si. duAI funciona con Windows 10 y Windows 11.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q6.q">Puedo deshacer la limpieza?</summary>
+                    <p data-i18n="faq.q6.a">Si usas el modo reciclaje, los archivos van a la papelera de reciclaje y puedes recuperarlos. El modo cuarentena guarda una copia con manifest. El modo permanente no se puede deshacer.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q7.q">Que hace el boton de Panico?</summary>
+                    <p data-i18n="faq.q7.a">Ejecuta una limpieza total silenciosa de todos los rastros de IA. Cierra pestañas de IA en el navegador, elimina archivos, limpia registry, DNS y clipboard. Un solo clic.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q8.q">Que es el sandbox de terminal?</summary>
+                    <p data-i18n="faq.q8.a">Aisla herramientas de IA como OpenCode o Claude Code redirigiendo sus variables de entorno a una carpeta temporal. Al cerrar la ventana, todo se borra automaticamente.</p>
+                </details>
+                <details class="faq-item">
+                    <summary data-i18n="faq.q9.q">Es open source?</summary>
+                    <p data-i18n="faq.q9.a">Si. duAI esta bajo licencia MIT. Puedes ver, modificar y distribuir el codigo fuente libremente.</p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <svg viewBox="80 180 340 120" class="logo-icon logo-sm">
+                    <text x="250" y="260" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="80" fill="currentColor">duAI</text>
+                </svg>
+                <p class="footer-tagline" data-i18n="footer.tagline">Don't Use AI.</p>
+            </div>
+            <div class="footer-links">
+                <a href="https://github.com/Imandro/duAI" target="_blank">GitHub</a>
+                <a href="https://github.com/Imandro/duAI/blob/main/LICENSE" target="_blank">MIT License</a>
+                <a href="https://github.com/Imandro/duAI/issues" target="_blank" data-i18n="footer.issues">Reportar Bug</a>
+            </div>
+            <div class="footer-copy">
+                <span>&copy; 2026 Imandro. <span data-i18n="footer.rights">Todos los derechos reservados.</span></span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
