@@ -5,28 +5,50 @@
 <h1 align="center">duAI — Don't Use AI</h1>
 
 <p align="center">
-  Herramienta de privacidad para Windows que detecta y elimina todos los rastros que las herramientas de IA dejan en tu computadora.
+  Privacy tool for Windows that detects and removes every trace of AI usage.
 </p>
 
 <p align="center">
-  <strong>100% local. Sin telemetria. Sin cuentas. Sin conexion externa.</strong>
+  <strong>100% local. No telemetry. No accounts. No external connections.</strong>
 </p>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Windows-10%2F11-black?style=flat-square" alt="Windows">
-  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square" alt="Python">
+  <img src="https://img.shields.io/badge/Python-3.14+-blue?style=flat-square" alt="Python">
   <img src="https://img.shields.io/badge/Licencia-MIT-green?style=flat-square" alt="MIT">
+  <img src="https://img.shields.io/badge/Idioma-ES%20%7C%20EN-purple?style=flat-square" alt="i18n">
 </p>
 
 ---
 
-## Descarga
+## Que es duAI
+
+duAI (Don't Use AI) scans and cleans traces from 30+ AI tools: files, browser history, Windows registry, DNS, clipboard, timeline and location. Everything is processed locally. Nothing leaves your computer.
+
+## Features
+
+- **Scan** — Analyzes 30+ targets in parallel with real-time progress bar
+- **Clean** — Selective removal: recycle bin, quarantine or permanent
+- **Panic** — Emergency one-click silent total wipe
+- **Protected Session** — Isolated browsing for ChatGPT, Claude, Gemini and more
+- **Isolated Terminal** — Run OpenCode, Claude Code, Codex CLI in a sandbox
+- **Stealth Mode** — duAI cleans itself on exit
+- **Telemetry Blocking** — Blocks 13 AI domains via hosts file
+- **i18n** — Interface in Spanish and English
+
+## Design
+
+100% monochrome. All black or all white. No grays, no colors, no compromises.
+
+---
+
+## Download
 
 | | |
 |---|---|
-| **Exe portable** | [duAI.exe](https://github.com/Imandro/duAI/blob/master/dist/duAI.exe) — sin instalacion, copiable a USB |
-| **Codigo fuente** | [github.com/Imandro/duAI](https://github.com/Imandro/duAI) |
-| **Requisitos** | Windows 10/11, Python 3.10+ (solo para ejecutar desde codigo) |
+| **Portable exe** | [duAI.exe](https://github.com/Imandro/duAI/blob/master/dist/duAI.exe) — no installation, copyable to USB |
+| **Source code** | [github.com/Imandro/duAI](https://github.com/Imandro/duAI) |
+| **Requirements** | Windows 10/11, Python 3.14+ (only needed to run from source) |
 
 ---
 
