@@ -17,6 +17,7 @@ from ..core.updater import (
     check_for_updates,
     check_for_updates_async,
     download_update,
+    fetch_expected_sha256,
     should_check_on_startup,
     set_check_on_startup,
 )
@@ -27,7 +28,7 @@ import os
 
 
 class UpdaterView(QWidget):
-    """Pantalla para comprobar y descargar actualizaciones de duAI."""
+    """Pantalla para comprobar y descargar actualizaciones de duAI con verificacion de integridad."""
 
     def __init__(self, main_window):
         super().__init__()
@@ -35,6 +36,7 @@ class UpdaterView(QWidget):
         self._worker = None
         self._download_worker = None
         self._download_url = ""
+        self._expected_sha256 = ""
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(64, 56, 64, 32)
@@ -69,6 +71,10 @@ class UpdaterView(QWidget):
         self.progress.setObjectName("hintLabel")
         outer.addWidget(self.progress)
 
+        self.verified_label = QLabel("")
+        self.verified_label.setObjectName("hintLabel")
+        outer.addWidget(self.verified_label)
+
         self.notes = QTextEdit()
         self.notes.setReadOnly(True)
         self.notes.setMaximumHeight(200)
@@ -92,6 +98,7 @@ class UpdaterView(QWidget):
         self.check_btn.setEnabled(False)
         self.check_btn.setText("COMPROBANDO...")
         self.status.setText("")
+        self.verified_label.setText("")
 
         def job():
             return check_for_updates()
@@ -102,16 +109,34 @@ class UpdaterView(QWidget):
             if result.error:
                 self.status.setText(t("updater.error", error=result.error))
                 self.download_btn.setEnabled(False)
+                self.verified_label.setText("")
                 return
             if result.available:
                 self.status.setText(t("updater.available", version=result.latest_version))
                 self.notes.setPlainText(result.release_notes or "(sin notas de version)")
                 self._download_url = result.download_url
                 self.download_btn.setEnabled(bool(result.download_url))
+
+                # Obtener hash esperado (del .sha256 adjunto o de las release notes)
+                if result.sha256_url:
+                    expected = fetch_expected_sha256(result.sha256_url)
+                    if expected:
+                        self._expected_sha256 = expected
+                        self.verified_label.setText("Hash SHA-256 disponible para verificacion.")
+                    else:
+                        self._expected_sha256 = ""
+                        self.verified_label.setText("No se encontro hash SHA-256 para verificar.")
+                elif result.expected_sha256:
+                    self._expected_sha256 = result.expected_sha256
+                    self.verified_label.setText("Hash SHA-256 extraido de las notas de version.")
+                else:
+                    self._expected_sha256 = ""
+                    self.verified_label.setText("ADVERTENCIA: sin hash SHA-256, la descarga no se verificara.")
             else:
                 self.status.setText(t("updater.up_to_date", version=CURRENT_VERSION))
                 self.notes.clear()
                 self.download_btn.setEnabled(False)
+                self.verified_label.setText("")
 
         def failed(msg):
             self.check_btn.setEnabled(True)
@@ -126,7 +151,6 @@ class UpdaterView(QWidget):
     def _download(self):
         if not self._download_url:
             return
-        import os
 
         dest_dir = os.path.join(base_dir(), "updates")
         os.makedirs(dest_dir, exist_ok=True)
@@ -135,24 +159,29 @@ class UpdaterView(QWidget):
         self.download_btn.setEnabled(False)
         self.download_btn.setText("DESCARGANDO...")
 
-        def job(progress_cb=None):
-            return download_update(self._download_url, dest_path, progress_cb)
+        def wrapped_job():
+            return download_update(
+                self._download_url,
+                dest_path,
+                expected_sha256=self._expected_sha256,
+            )
 
         def done(ok):
             self.download_btn.setEnabled(True)
             self.download_btn.setText(t("updater.download"))
             if ok:
                 self.status.setText(t("updater.download_done", path=dest_path))
+                if self._expected_sha256:
+                    self.verified_label.setText("Descarga verificada correctamente (SHA-256 OK).")
                 QMessageBox.information(
                     self, "duAI",
                     f"Actualizacion descargada en:\n{dest_path}\n\nEjecuta el instalador para actualizar."
                 )
             else:
-                self.status.setText("Error al descargar la actualizacion.")
-
-        # Worker no soporta progress_cb directamente; usamos un wrapper simple
-        def wrapped_job():
-            return download_update(self._download_url, dest_path)
+                if self._expected_sha256:
+                    self.status.setText("Error: el hash SHA-256 no coincide. Descarga cancelada por seguridad.")
+                else:
+                    self.status.setText("Error al descargar la actualizacion.")
 
         self._download_worker = Worker(wrapped_job)
         self._download_worker.done.connect(done)

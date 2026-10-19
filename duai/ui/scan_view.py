@@ -170,7 +170,7 @@ class ScanView(QWidget):
 
     def _cancel_scan(self):
         if self._worker and self._worker.isRunning():
-            self._worker.terminate()
+            self._worker.cancel()
             self._scan_btn_reset()
 
     def _scan_btn_reset(self):

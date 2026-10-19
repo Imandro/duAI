@@ -9,8 +9,14 @@ def main():
     parser.add_argument("--panic", action="store_true", help="Ejecuta limpieza total silenciosa y sale")
     parser.add_argument("--screenshots", action="store_true", help="Captura screenshots de cada tab y sale")
     parser.add_argument("--check-updates", action="store_true", help="Comprueba actualizaciones y sale")
-    parser.add_argument("--portable", action="store_true", help="Modo portable (no escribe configuracion persistente)")
+    parser.add_argument("--portable", action="store_true", help="Modo portable (configuracion junto al ejecutable, ideal para USB)")
     args = parser.parse_args()
+
+    # Activar modo portable ANTES de importar duai para que base_dir() redirija correctamente
+    if args.portable:
+        from duai.utils.logger import set_portable_mode
+
+        set_portable_mode(True)
 
     if args.panic:
         from duai.core.panic import format_result_summary, perform_panic
@@ -36,10 +42,6 @@ def main():
         else:
             print(f"duAI esta actualizado (version {CURRENT_VERSION})")
         return 0
-
-    if args.portable:
-        from duai.utils.settings import get_settings
-        get_settings().set("portable_mode", True)
 
     from duai.app import run_gui
 

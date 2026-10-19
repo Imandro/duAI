@@ -76,7 +76,6 @@ class Stats:
                 "total_freed_bytes": 0,
                 "total_items_removed": 0,
                 "streak_days": 0,
-                "last_used": None,
                 "stealth_exits": 0,
                 "quarantine_restores": 0,
                 "achievements_unlocked": [],
@@ -101,28 +100,36 @@ class Stats:
         self.save()
 
     def record_scan(self, found: int, freed_bytes: int):
+        if not get_settings().get("gamification", True):
+            return
         self.increment("scans")
-        today = date.today().isoformat()
-        if self._data.get("last_used") != today:
-            self._data["streak_days"] = self._data.get("streak_days", 0) + 1
-            self._data["last_used"] = today
+        # Streak basado en sesion actual (no se guarda fecha exacta para evitar perfilamiento)
+        self._data["streak_days"] = self._data.get("streak_days", 0) + 1
         self.save()
 
     def record_clean(self, removed_items: int, freed_bytes: int):
+        if not get_settings().get("gamification", True):
+            return
         self.increment("cleans")
         self.increment("total_items_removed", removed_items)
         self.increment("total_freed_bytes", freed_bytes)
         self.save()
 
     def record_panic(self):
+        if not get_settings().get("gamification", True):
+            return
         self.increment("panics")
         self.save()
 
     def record_stealth_exit(self):
+        if not get_settings().get("gamification", True):
+            return
         self.increment("stealth_exits")
         self.save()
 
     def record_quarantine_restore(self):
+        if not get_settings().get("gamification", True):
+            return
         self.increment("quarantine_restores")
         self.save()
 
@@ -137,6 +144,8 @@ class Stats:
         return result
 
     def unlock_achievement(self, ach_id: str) -> bool:
+        if not get_settings().get("gamification", True):
+            return False
         unlocked = set(self._data.get("achievements_unlocked", []))
         if ach_id in unlocked:
             return False
@@ -147,6 +156,8 @@ class Stats:
 
     def check_achievements(self):
         """Revisa y desbloquea logros segun estadisticas actuales."""
+        if not get_settings().get("gamification", True):
+            return []
         newly = []
         for ach in ACHIEVEMENTS:
             if ach["id"] not in set(self._data.get("achievements_unlocked", [])):
@@ -164,6 +175,34 @@ def get_stats() -> Stats:
     if _stats is None:
         _stats = Stats()
     return _stats
+
+
+def gamification_enabled() -> bool:
+    """Indica si la gamificacion y registro de estadisticas esta activada."""
+    return bool(get_settings().get("gamification", True))
+
+
+def set_gamification(enabled: bool):
+    """Activa o desactiva la gamificacion y registro de estadisticas."""
+    get_settings().set("gamification", bool(enabled))
+
+
+def reset_stats():
+    """Reinicia todas las estadisticas y logros."""
+    global _stats
+    if _stats is not None:
+        _stats._data = {
+            "scans": 0,
+            "cleans": 0,
+            "panics": 0,
+            "total_freed_bytes": 0,
+            "total_items_removed": 0,
+            "streak_days": 0,
+            "stealth_exits": 0,
+            "quarantine_restores": 0,
+            "achievements_unlocked": [],
+        }
+        _stats.save()
 
 
 def generate_share_report(scan_result=None, clean_result=None) -> str:

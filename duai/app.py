@@ -466,9 +466,36 @@ class MainWindow(QMainWindow):
             self._hotkey_worker.stop()
             self._hotkey_worker = None
         settings = get_settings()
-        if settings.get("hotkey_enabled", True):
-            self._hotkey_worker = HotkeyWorker(self.trigger_panic)
+        if settings.get("hotkey_enabled", False):
+            self._hotkey_worker = HotkeyWorker(self._hotkey_panic_guard)
             self._hotkey_worker.start()
+
+    def _hotkey_panic_guard(self):
+        """Guarda el disparo de panico por hotkey global: si hay contrasena, la pide."""
+        from .security import auth
+
+        if auth.has_password():
+            from PySide6.QtWidgets import QDialog, QVBoxLayout, QLabel, QLineEdit, QPushButton
+
+            dialog = QDialog(self)
+            dialog.setWindowTitle("duAI - Autenticación requerida")
+            dialog.setModal(True)
+            layout = QVBoxLayout(dialog)
+            layout.addWidget(QLabel("Se requiere contrasena para activar el panico global."))
+            pw = QLineEdit()
+            pw.setEchoMode(QLineEdit.EchoMode.Password)
+            pw.setPlaceholderText("Escribe tu contrasena")
+            layout.addWidget(pw)
+            btn = QPushButton("AUTORIZAR PANICO")
+            btn.clicked.connect(dialog.accept)
+            layout.addWidget(btn)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                if auth.verify_password(pw.text()):
+                    self.trigger_panic()
+                else:
+                    self.cli_output("[HOTKEY] Contrasena incorrecta. Panico cancelado.")
+        else:
+            self.trigger_panic()
 
     def restart_auto_timer(self):
         settings = get_settings()

@@ -4,9 +4,33 @@ import time
 
 from .paths import expand
 
+_portable_mode = False
+
+
+def set_portable_mode(enabled: bool):
+    """Activa el modo portable: base_dir apunta junto al ejecutable, no a %LOCALAPPDATA%."""
+    global _portable_mode
+    _portable_mode = bool(enabled)
+
+
+def is_portable_mode() -> bool:
+    return _portable_mode
+
 
 def base_dir():
-    path = expand("%LOCALAPPDATA%/duAI")
+    if _portable_mode:
+        # Modo portable: configuración junto al ejecutable (ideal para USB)
+        if getattr(os.sys if hasattr(os, "sys") else __import__("sys"), "frozen", False):
+            import sys
+
+            base = os.path.dirname(sys.executable)
+        else:
+            import sys
+
+            base = os.path.dirname(os.path.abspath(sys.argv[0] or __file__))
+        path = os.path.join(base, "duAI_data")
+    else:
+        path = expand("%LOCALAPPDATA%/duAI")
     os.makedirs(path, exist_ok=True)
     return path
 

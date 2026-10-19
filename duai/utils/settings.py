@@ -12,7 +12,7 @@ DEFAULTS = {
     "password_salt": None,
     "auto_clean_on_exit": False,
     "auto_interval_min": 0,
-    "hotkey_enabled": True,
+    "hotkey_enabled": False,          # DESACTIVADO por defecto por seguridad (evita pánico accidental)
     "panic_mode": "recycle",
     "self_purge_on_exit": False,
     "hosts_block": False,

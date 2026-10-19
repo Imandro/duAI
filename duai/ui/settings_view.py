@@ -19,6 +19,7 @@ from ..security import auth
 from ..utils.logger import open_logs_folder
 from ..i18n import t
 from ..utils.settings import get_settings
+from ..core.viral import set_gamification
 
 
 class SettingsView(QWidget):
@@ -51,6 +52,7 @@ class SettingsView(QWidget):
         self._build_password(layout)
         self._build_exclusions(layout)
         self._build_stealth(layout)
+        self._build_gamification(layout)
         self._build_float_widget(layout)
         self._build_uninstall(layout)
         self._build_quarantine(layout)
@@ -210,6 +212,82 @@ class SettingsView(QWidget):
         row.addWidget(purge_btn)
         row.addStretch(1)
         box.addLayout(row)
+
+    def _build_gamification(self, layout):
+        box = self._section(layout, t("viral.title"))
+
+        # Gamificacion (estadisticas y logros)
+        self.gam_check = QCheckBox(t("viral.stats"))
+        self.gam_check.setChecked(bool(get_settings().get("gamification", True)))
+        self.gam_check.toggled.connect(
+            lambda state: set_gamification(bool(state))
+        )
+        box.addWidget(self.gam_check)
+        hint = QLabel(
+            "Registra escaneos, limpiezas, modo panico y logros. "
+            "Todo se guarda localmente; no hay telemetria."
+        )
+        hint.setObjectName("heroBody")
+        hint.setWordWrap(True)
+        box.addWidget(hint)
+
+        # Color de acento
+        acc_row = QHBoxLayout()
+        acc_lbl = QLabel(t("viral.accent"))
+        acc_lbl.setObjectName("microLabel")
+        acc_row.addWidget(acc_lbl)
+        self.acc_combo = QComboBox()
+        self.acc_combo.addItems([
+            t("viral.accent_none"),
+            t("viral.accent_red"),
+            t("viral.accent_green"),
+            t("viral.accent_blue"),
+            t("viral.accent_purple"),
+        ])
+        accent_map = {
+            t("viral.accent_none"): "",
+            t("viral.accent_red"): "red",
+            t("viral.accent_green"): "green",
+            t("viral.accent_blue"): "blue",
+            t("viral.accent_purple"): "purple",
+        }
+        current = get_settings().get("accent_color") or ""
+        for key, val in accent_map.items():
+            if val == current:
+                self.acc_combo.setCurrentText(key)
+                break
+        self.acc_combo.currentIndexChanged.connect(self._on_accent_changed)
+        self._accent_map = accent_map
+        acc_row.addWidget(self.acc_combo)
+        acc_row.addStretch(1)
+        box.addLayout(acc_row)
+
+        # Plataforma para compartir
+        sh_row = QHBoxLayout()
+        sh_lbl = QLabel("Compartir en:")
+        sh_lbl.setObjectName("microLabel")
+        sh_row.addWidget(sh_lbl)
+        self.share_combo = QComboBox()
+        self.share_combo.addItems(["Twitter", "Telegram", "WhatsApp", "Facebook"])
+        current_share = get_settings().get("share_platform") or "twitter"
+        self.share_combo.setCurrentText(current_share.capitalize())
+        self.share_combo.currentIndexChanged.connect(self._on_share_changed)
+        sh_row.addWidget(self.share_combo)
+        sh_row.addStretch(1)
+        box.addLayout(sh_row)
+
+    def _on_accent_changed(self, index):
+        key = self.acc_combo.currentText()
+        value = self._accent_map.get(key, "")
+        from .theme import apply_theme
+        from PySide6.QtWidgets import QApplication
+        apply_theme(QApplication.instance(), get_settings().get("ui_mode") or "claro", value)
+        get_settings().set("accent_color", value)
+        self.mw.apply_accent_mode(value)
+
+    def _on_share_changed(self, index):
+        platform = self.share_combo.currentText().lower()
+        get_settings().set("share_platform", platform)
 
     def _build_float_widget(self, layout):
         box = self._section(layout, t("set.float_section"))

@@ -24,11 +24,12 @@ OutputDir=installer
 OutputBaseFilename=duAI-Setup-{#MyAppVersion}
 Compression=lzma
 SolidCompression=yes
-PrivilegesRequired=lowest
+PrivilegesRequired=admin
 Uninstallable=yes
-ChangesEnvironment=yes
+ChangesEnvironment=no
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=yes
+PrivilegesRequired=admin
 
 [Languages]
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
@@ -57,4 +58,29 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 function InitializeSetup(): Boolean;
 begin
   Result := True;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssPostInstall then
+  begin
+    // Nota: no crear tarea de autostart automaticamente por seguridad.
+    // El usuario puede activarla desde Ajustes > Programador.
+  end;
+end;
+
+function UninstallNeeded: Boolean;
+begin
+  Result := True;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = ssUninstall then
+  begin
+    // Limpiar datos de usuario en %LOCALAPPDATA%\duAI
+    // Nota: Inno Setup no puede borrar facilmente rutas de variables de entorno
+    // sin llamar a un script externo. Se deja a cargo del usuario o de un script
+    // de desinstalacion adicional si se requiere limpieza profunda.
+  end;
 end;

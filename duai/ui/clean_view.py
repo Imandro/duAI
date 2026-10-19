@@ -152,6 +152,19 @@ class CleanView(QWidget):
         else:
             mode = "recycle"
         preview = self.preview_check.isChecked()
+
+        # Confirmacion obligatoria para limpieza permanente sin vista previa
+        if mode == "permanent" and not preview:
+            confirm = QMessageBox.question(
+                self,
+                t("clean.confirm_permanent_title"),
+                t("clean.confirm_permanent_msg"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if confirm != QMessageBox.StandardButton.Yes:
+                return
+
         self.run_btn.setEnabled(False)
         self.run_btn.setText(t("clean.processing"))
 

@@ -81,6 +81,8 @@ _TRANSLATIONS = {
         "clean.processing": "PROCESANDO...",
         "clean.before_after": "--- ANTES / DESPUES ---",
         "clean.error": "Error durante la limpieza: ",
+        "clean.confirm_permanent_title": "CONFIRMAR ELIMINACION PERMANENTE",
+        "clean.confirm_permanent_msg": "Vas a eliminar elementos de forma PERMANENTE.\n\nNo se podran recuperar desde la papelera ni de la cuarentena.\n¿Estas seguro de continuar?",
         # PANIC
         "panic.response": "RESPUESTA INMEDIATA",
         "panic.mode": "Modo panico",
@@ -97,6 +99,8 @@ _TRANSLATIONS = {
         "panic.admin_note": "NOTA: PREFETCH Y HOSTS REQUIEREN PERMISOS DE ADMINISTRADOR Y SE OMITE EN MODO PANICO SI NO LOS HAY.",
         "panic.cleaning": "LIMPIANDO...",
         "panic.error": "Error en modo panico: ",
+        "panic.confirm_title": "CONFIRMAR MODO PANICO",
+        "panic.confirm_msg": "Esto ejecutara una limpieza total silenciosa en modo {mode}.\n\nEsta accion borrara rastros de IA, historial, registro y mas.\nNo se puede deshacer si el modo es permanente.\n\n¿Estas seguro?",
         # SESSION
         "session.title": "NAVEGACION SIN RASTRO",
         "session.subtitle": "Sesion protegida",
@@ -461,6 +465,8 @@ _TRANSLATIONS = {
         "clean.processing": "PROCESSING...",
         "clean.before_after": "--- BEFORE / AFTER ---",
         "clean.error": "Error during cleaning: ",
+        "clean.confirm_permanent_title": "CONFIRM PERMANENT DELETION",
+        "clean.confirm_permanent_msg": "You are about to delete items PERMANENTLY.\n\nThey cannot be recovered from the recycle bin or quarantine.\nAre you sure you want to continue?",
         # PANIC
         "panic.response": "IMMEDIATE RESPONSE",
         "panic.mode": "Panic mode",
@@ -477,6 +483,8 @@ _TRANSLATIONS = {
         "panic.admin_note": "NOTE: PREFETCH AND HOSTS REQUIRE ADMIN PERMISSIONS AND ARE SKIPPED IN PANIC MODE IF NOT AVAILABLE.",
         "panic.cleaning": "CLEANING...",
         "panic.error": "Error in panic mode: ",
+        "panic.confirm_title": "CONFIRM PANIC MODE",
+        "panic.confirm_msg": "This will perform a silent total wipe in {mode} mode.\n\nIt will delete AI traces, history, registry entries, and more.\nThis action cannot be undone if the mode is permanent.\n\nAre you sure?",
         # SESSION
         "session.title": "TRACE-FREE BROWSING",
         "session.subtitle": "Protected session",

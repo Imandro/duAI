@@ -141,11 +141,21 @@ class PanicWidget(QWidget):
     def trigger_panic(self):
         if self._worker and self._worker.isRunning():
             return False
-        self._pulse.stop()
+        # Confirmacion obligatoria antes de ejecutar pánico
         mode = next(
             (radio.property("mode") for radio in self.mode_group.buttons() if radio.isChecked()),
             "recycle",
         )
+        confirm = QMessageBox.question(
+            self,
+            t("panic.confirm_title"),
+            t("panic.confirm_msg", mode=mode),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if confirm != QMessageBox.StandardButton.Yes:
+            return False
+        self._pulse.stop()
         self.panic_btn.setEnabled(False)
         self.panic_btn.setText(t("panic.cleaning"))
 
