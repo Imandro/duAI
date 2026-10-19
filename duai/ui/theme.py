@@ -33,19 +33,42 @@ PALETTES = {
     },
 }
 
+# Colores de acento opcional (para romper el monocromatico cuando el usuario lo desee)
+ACCENT_COLORS = {
+    "": {"ACCENT": "#000000", "ACCENT_HOVER": "#3A3A3A"},
+    "red": {"ACCENT": "#FF0040", "ACCENT_HOVER": "#FF3366"},
+    "green": {"ACCENT": "#00FF40", "ACCENT_HOVER": "#33FF66"},
+    "blue": {"ACCENT": "#0066FF", "ACCENT_HOVER": "#3380FF"},
+    "purple": {"ACCENT": "#CC00FF", "ACCENT_HOVER": "#E033FF"},
+}
+
 _current_mode = "claro"
+_current_accent = ""
 
 
 def current_mode():
     return _current_mode
 
 
+def current_accent():
+    return _current_accent
+
+
 def color(key):
-    return PALETTES.get(_current_mode, PALETTES["claro"]).get(key, "#000000")
+    base = PALETTES.get(_current_mode, PALETTES["claro"])
+    if key in ("ACCENT", "ACCENT_HOVER"):
+        return ACCENT_COLORS.get(_current_accent, ACCENT_COLORS[""]).get(key, base["FG"])
+    return base.get(key, "#000000")
 
 
-def render_css(mode):
-    palette = PALETTES.get(mode, PALETTES["claro"])
+def render_css(mode=None, accent=None):
+    global _current_mode, _current_accent
+    if mode in PALETTES:
+        _current_mode = mode
+    if accent is not None:
+        _current_accent = accent
+    palette = PALETTES.get(_current_mode, PALETTES["claro"])
+    accent_palette = ACCENT_COLORS.get(_current_accent, ACCENT_COLORS[""])
     qss_path = os.path.join(THEME_DIR, "theme.qss")
     try:
         with open(qss_path, "r", encoding="utf-8") as fh:
@@ -55,14 +78,18 @@ def render_css(mode):
     css = template
     for key, value in palette.items():
         css = css.replace("__" + key + "__", value)
+    for key, value in accent_palette.items():
+        css = css.replace("__" + key + "__", value)
     return css
 
 
-def apply_theme(app, mode=None):
-    global _current_mode
+def apply_theme(app, mode=None, accent=None):
+    global _current_mode, _current_accent
     if mode in PALETTES:
         _current_mode = mode
-    app.setStyleSheet(render_css(_current_mode))
+    if accent is not None:
+        _current_accent = accent
+    app.setStyleSheet(render_css(_current_mode, _current_accent))
     app.setFont(QFont("Segoe UI", 10))
     app.setStyle("Fusion")
-    return _current_mode
+    return _current_mode, _current_accent

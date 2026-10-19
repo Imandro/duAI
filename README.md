@@ -25,6 +25,15 @@
 
 duAI (Don't Use AI) scans and cleans traces from 30+ AI tools: files, browser history, Windows registry, DNS, clipboard, timeline and location. Everything is processed locally. Nothing leaves your computer.
 
+## Caracteristicas nuevas en v2.0
+
+- **Actualizaciones automaticas** — Comprueba nuevas versiones en GitHub Releases y las descarga con un clic.
+- **Logros y gamificacion** — Desbloquea medallas: primer escaneo, 1 GB liberado, modo panico, racha semanal, modo sigilo, rey de la cuarentena.
+- **Compartir en redes sociales** — Genera un reporte de privacidad sin datos sensibles listo para copiar al portapapeles o compartir en Twitter, Telegram, WhatsApp y Facebook.
+- **Color de acento opcional** — Rompe el estilo monocromatico con rojo, verde, azul o morado neón desde Ajustes > Logros y compartir.
+- **Instalador real** — `duAI-Setup.exe` con atajos de Inicio, escritorio, desinstalador y opcion de auto-inicio al iniciar sesion.
+- **Modo portable** — Ejecuta `duAI.exe --portable` para no escribir configuracion persistente (ideal para USB).
+
 ## Features
 
 - **Scan** — Analyzes 30+ targets in parallel with real-time progress bar
@@ -46,6 +55,7 @@ duAI (Don't Use AI) scans and cleans traces from 30+ AI tools: files, browser hi
 
 | | |
 |---|---|
+| **Instalador** | [duAI-Setup.exe](https://github.com/Imandro/duAI/releases/latest) — atajos, desinstalador, auto-inicio |
 | **Portable exe** | [duAI.exe](https://github.com/Imandro/duAI/blob/master/dist/duAI.exe) — no installation, copyable to USB |
 | **Source code** | [github.com/Imandro/duAI](https://github.com/Imandro/duAI) |
 | **Requirements** | Windows 10/11, Python 3.14+ (only needed to run from source) |
@@ -119,6 +129,8 @@ Widget always-on-top que se puede arrastrar por la pantalla:
 | **PANICO** | Limpieza total silenciosa con destino configurable |
 | **AJUSTES** | Contrasena, exclusiones, modo sigilo, cuarentena, hosts, programador |
 | **TERMINAL** | Consola PTY real con integracion de herramientas CLI aisladas |
+| **LOGROS** | Logros desbloqueados, estadisticas de uso, compartir en redes |
+| **ACTUALIZACIONES** | Comprobar y descargar nuevas versiones desde GitHub |
 
 ---
 
@@ -211,7 +223,17 @@ PS> dir
 
 ---
 
-## Instalacion (desde codigo)
+## Instalacion
+
+### Opcion A: Instalador (recomendado)
+
+Descarga `duAI-Setup.exe` desde los [Releases](https://github.com/Imandro/duAI/releases) de GitHub, ejecutalo y sigue el asistente. Obtienes:
+
+- Acceso directo en el menu Inicio y escritorio
+- Desinstalador limpio
+- Opcion de ejecutar duAI al iniciar sesion
+
+### Opcion B: Portable (sin instalador)
 
 ```powershell
 git clone https://github.com/Imandro/duAI.git
@@ -221,10 +243,22 @@ python -m venv .venv
 .venv\Scripts\python main.py
 ```
 
+O usa el .exe portable directamente:
+
+```powershell
+.\dist\duAI.exe --portable
+```
+
 ### Panico silencioso (sin interfaz)
 
 ```powershell
 .venv\Scripts\python main.py --panic
+```
+
+### Comprobar actualizaciones
+
+```powershell
+.venv\Scripts\python main.py --check-updates
 ```
 
 ### Generar exe portable
@@ -234,6 +268,12 @@ powershell -ExecutionPolicy Bypass -File build_exe.ps1
 ```
 
 Genera `dist\duAI.exe` — un unico archivo sin dependencias.
+
+### Crear instalador con Inno Setup
+
+1. Instala [Inno Setup](https://jrsoftware.org/isinfo.php)
+2. Ejecuta: `ISCC duAI_setup.iss`
+3. Genera `installer\duAI-Setup-2.0.0.exe`
 
 ---
 

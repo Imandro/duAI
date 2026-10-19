@@ -194,6 +194,12 @@ class CleanView(QWidget):
                 self.log_view.append(line)
             self.mw.session_freed_bytes += result.freed_bytes
             self.mw.dashboard_view.refresh_stats()
+            # Registrar estadisticas de uso
+            try:
+                from ..core.viral import get_stats
+                get_stats().record_clean(result.removed_items, result.freed_bytes)
+            except Exception:
+                pass
         self.log_view.append("")
 
     def _failed(self, message):

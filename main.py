@@ -8,6 +8,8 @@ def main():
     parser = argparse.ArgumentParser(prog="duAI", description="duAI - Don't Use AI")
     parser.add_argument("--panic", action="store_true", help="Ejecuta limpieza total silenciosa y sale")
     parser.add_argument("--screenshots", action="store_true", help="Captura screenshots de cada tab y sale")
+    parser.add_argument("--check-updates", action="store_true", help="Comprueba actualizaciones y sale")
+    parser.add_argument("--portable", action="store_true", help="Modo portable (no escribe configuracion persistente)")
     args = parser.parse_args()
 
     if args.panic:
@@ -19,6 +21,25 @@ def main():
 
     if args.screenshots:
         return _take_screenshots()
+
+    if args.check_updates:
+        from duai.core.updater import check_for_updates, CURRENT_VERSION
+
+        result = check_for_updates()
+        if result.error:
+            print(f"Error: {result.error}")
+            return 1
+        if result.available:
+            print(f"Nueva version disponible: {result.latest_version} (actual: {CURRENT_VERSION})")
+            if result.download_url:
+                print(f"Descarga: {result.download_url}")
+        else:
+            print(f"duAI esta actualizado (version {CURRENT_VERSION})")
+        return 0
+
+    if args.portable:
+        from duai.utils.settings import get_settings
+        get_settings().set("portable_mode", True)
 
     from duai.app import run_gui
 

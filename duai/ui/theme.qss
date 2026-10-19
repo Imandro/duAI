@@ -453,3 +453,77 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 #cliSessionIdle {
     color: __SOFT__;
 }
+
+/* Estilos de acento opcional */
+#accentBtn {
+    background: __ACCENT__;
+    color: __BG__;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#accentBtn:hover {
+    background: __ACCENT_HOVER__;
+}
+
+#accentBtn:checked {
+    background: __ACCENT__;
+    border: 2px solid __FG__;
+}
+
+#shareBtn {
+    background: __ACCENT__;
+    color: __BG__;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+#shareBtn:hover {
+    background: __ACCENT_HOVER__;
+}
+
+.achievement {
+    background: __ALT__;
+    border: 1px solid __LINE__;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+}
+
+.achievement.unlocked {
+    border: 1px solid __ACCENT__;
+}
+
+.achievement.locked {
+    opacity: 0.4;
+}
+
+.achievement .name {
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: __FG__;
+}
+
+.achievement .desc {
+    font-size: 10px;
+    color: __SOFT__;
+    margin-top: 4px;
+}
+
+.shareHint {
+    color: __SOFT__;
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-top: 8px;
+}
+

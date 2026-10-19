@@ -22,6 +22,11 @@ DEFAULTS = {
     "float_x": None,
     "float_y": None,
     "float_size": 160,
+    "check_updates": True,
+    "accent_color": "",          # "" = monocromatico por defecto
+    "gamification": True,        # logros y racha activados
+    "share_platform": "twitter", # plataforma predeterminada para compartir
+    "portable_mode": False,      # si se ejecuta como portable sin instalador
 }
 
 

@@ -196,6 +196,12 @@ class ScanView(QWidget):
         self.progress_label.setText("")
         self.progress_bar.setValue(self.progress_bar.maximum())
         self.mw.dashboard_view.refresh_stats()
+        # Registrar estadisticas de uso
+        try:
+            from ..core.viral import get_stats
+            get_stats().record_scan(found, report.total_bytes)
+        except Exception:
+            pass
 
     def _scan_failed(self, message):
         self._scan_btn_reset()

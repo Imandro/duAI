@@ -21,6 +21,12 @@ from PySide6.QtWidgets import (
 
 from .core.scheduler import HotkeyWorker
 from .core.session import has_running_session, stop_session
+from .core.updater import (
+    check_for_updates_async,
+    CURRENT_VERSION,
+    should_check_on_startup,
+)
+from .core.viral import get_stats, generate_share_report, copy_to_clipboard
 from .security import auth
 from .ui.animations import (
     FadeStack,
@@ -37,6 +43,8 @@ from .ui.scan_view import ScanView
 from .ui.settings_view import SettingsView
 from .ui.session_view import SessionView
 from .ui.terminal_view import TerminalView
+from .ui.updater_view import UpdaterView
+from .ui.viral_view import ViralView
 from .i18n import t
 from .utils.settings import get_settings
 
@@ -74,7 +82,7 @@ class LoginDialog(QDialog):
 
 
 class MainWindow(QMainWindow):
-    NAV = [t("nav.resumen"), t("nav.escaneo"), t("nav.limpieza"), t("nav.sesion"), t("nav.panico"), t("nav.ajustes"), t("nav.terminal")]
+    NAV = [t("nav.resumen"), t("nav.escaneo"), t("nav.limpieza"), t("nav.sesion"), t("nav.panico"), t("nav.ajustes"), t("nav.terminal"), t("viral.title"), t("updater.title")]
 
     def __init__(self):
         super().__init__()
@@ -85,6 +93,7 @@ class MainWindow(QMainWindow):
         self._hotkey_worker = None
         self._float_widget = None
         self._boot_faded = False
+        self._accent_mode = get_settings().get("accent_color") or ""
         self.setWindowOpacity(0.0)
 
         from .core.cli_session import cleanup_orphan_sandboxes
@@ -161,6 +170,8 @@ class MainWindow(QMainWindow):
         self.panic_widget = PanicWidget(self)
         self.settings_view = SettingsView(self)
         self.terminal_view = TerminalView(self)
+        self.viral_view = ViralView(self)
+        self.updater_view = UpdaterView(self)
         for view in (
             self.dashboard_view,
             self.scan_view,
@@ -169,6 +180,8 @@ class MainWindow(QMainWindow):
             self.panic_widget,
             self.settings_view,
             self.terminal_view,
+            self.viral_view,
+            self.updater_view,
         ):
             self.stack.addWidget(view)
 
@@ -226,6 +239,42 @@ class MainWindow(QMainWindow):
         if get_settings().get("float_visible"):
             self.show_panic_float(persist=False)
 
+        # Comprobar actualizaciones al arrancar (si esta habilitado)
+        if should_check_on_startup():
+            check_for_updates_async(self._on_update_check)
+
+    def _on_update_check(self, result):
+        """Callback cuando termina la comprobacion de actualizaciones."""
+        if result.error:
+            self.cli_output(f"[UPDATER] {result.error}")
+            return
+        if result.available:
+            self.cli_output(
+                f"[UPDATER] Version disponible: {result.latest_version} (actual: {CURRENT_VERSION})"
+            )
+            if result.download_url:
+                self.cli_output(f"[UPDATER] Descarga: {result.download_url}")
+        else:
+            self.cli_output(f"[UPDATER] {t('updater.up_to_date', version=CURRENT_VERSION)}")
+
+    # ---------------- tema y acento ----------------
+
+    def apply_accent_mode(self, accent: str):
+        """Aplica un color de acento opcional al estilo de la aplicacion."""
+        from PySide6.QtWidgets import QApplication
+        from .ui.theme import apply_theme
+
+        self._accent_mode = accent
+        get_settings().set("accent_color", accent)
+        apply_theme(QApplication.instance(), get_settings().get("ui_mode") or "claro", accent)
+        self.theme_btn.setText(self._theme_btn_label())
+        self.tray.setIcon(self._make_tray_icon())
+        self._update_logo()
+        if self._float_widget:
+            self._float_widget.setStyleSheet("")
+        self.cli_output(f"Acento aplicado: {accent or 'monocromatico'}")
+
+
     def showEvent(self, event):
         if not self._boot_faded:
             self._boot_faded = True
@@ -237,6 +286,18 @@ class MainWindow(QMainWindow):
     def navigate(self, index):
         self.nav_buttons[index].setChecked(True)
         self.stack.setCurrentIndexAnimated(index)
+        # Refrescar logros al entrar a la pestaña viral
+        if index == self.stack.indexOf(self.viral_view):
+            self.viral_view.refresh()
+            # Revisar y notificar logros nuevos
+            try:
+                from .core.viral import get_stats
+                nuevos = get_stats().check_achievements()
+                if nuevos:
+                    for ach in nuevos:
+                        self.cli_output(t("viral.new_achievement", name=ach["name"]))
+            except Exception:
+                pass
 
     def _theme_btn_label(self):
         return t("app.theme_dark") if get_settings().get("ui_mode") != "oscuro" else t("app.theme_light")
@@ -471,6 +532,11 @@ class MainWindow(QMainWindow):
 
             purge_logs()
             purge_own_recent_links()
+            try:
+                from ..core.viral import get_stats
+                get_stats().record_stealth_exit()
+            except Exception:
+                pass
         if self._hotkey_worker:
             self._hotkey_worker.stop()
         event.accept()

@@ -165,6 +165,12 @@ class PanicWidget(QWidget):
         self.result_view.setPlainText(format_result_summary(result))
         self.mw.session_freed_bytes += result.freed_bytes
         self.mw.dashboard_view.refresh_stats()
+        # Registrar estadisticas de uso
+        try:
+            from ..core.viral import get_stats
+            get_stats().record_panic()
+        except Exception:
+            pass
 
     def _failed(self, message):
         self.panic_btn.setEnabled(True)
