@@ -152,6 +152,14 @@ def record_score(score, report=None):
     if len(history) > 90:
         history = history[-90:]
     _save_history(history)
+
+    # Reflejar tambien en las estadisticas virales (grafico de tendencia)
+    try:
+        from .viral import get_stats
+        get_stats().record_privacy_score(int(score))
+    except Exception:
+        pass
+
     return entry
 
 

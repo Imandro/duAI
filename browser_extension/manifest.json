@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "duAI Browser Extension",
+  "version": "2.0.0",
+  "description": "Detects and helps clean AI-related browser traces. Companion to duAI desktop app.",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage",
+    "history",
+    "browsingData",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://chatgpt.com/*",
+    "https://openai.com/*",
+    "https://claude.ai/*",
+    "https://anthropic.com/*",
+    "https://gemini.google.com/*",
+    "https://perplexity.ai/*",
+    "https://copilot.microsoft.com/*",
+    "https://poe.com/*",
+    "https://character.ai/*",
+    "https://deepseek.com/*",
+    "https://mistral.ai/*",
+    "https://grok.com/*"
+  ],
+  "action": {
+    "default_title": "duAI - AI Trace Cleaner",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*.png"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "options_page": "options.html",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "key": "duai_browser_extension_public_key_placeholder"
+}

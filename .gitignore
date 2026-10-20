@@ -7,3 +7,7 @@ build/
 duai.log
 quarantine/
 logs/
+installer/
+installer_test/
+_test_setup.iss
+*.part

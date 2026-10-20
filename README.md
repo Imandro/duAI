@@ -27,27 +27,41 @@ duAI (Don't Use AI) scans and cleans traces from 30+ AI tools: files, browser hi
 
 ## Caracteristicas nuevas en v2.0
 
-- **Actualizaciones automaticas** — Comprueba nuevas versiones en GitHub Releases y las descarga con un clic.
-- **Logros y gamificacion** — Desbloquea medallas: primer escaneo, 1 GB liberado, modo panico, racha semanal, modo sigilo, rey de la cuarentena.
-- **Compartir en redes sociales** — Genera un reporte de privacidad sin datos sensibles listo para copiar al portapapeles o compartir en Twitter, Telegram, WhatsApp y Facebook.
-- **Color de acento opcional** — Rompe el estilo monocromatico con rojo, verde, azul o morado neón desde Ajustes > Logros y compartir.
+- **Privacy Score** — Puntuacion de privacidad de 0 a 100 basada en los rastros detectados, con tendencia historica.
+- **Analiticas** — Graficos de actividad, categorias, relacion escaneos/limpiezas y evolucion del score (7/30/90 dias o todo).
+- **Racha de dias limpios** — Mantén tu streak escaneando y limpiando cada dia.
+- **Limpieza rapida** — Un clic desde el dashboard para eliminar los rastros mas comunes.
+- **Logros con niveles** — 30+ medallas (bronce, plata, oro, platino), desafios diarios y codigos de referido.
+- **Clasificacion anonima** — Ranking opt-in con identificador no personal; puedes desactivarlo en cualquier momento.
+- **Reporte visual** — Genera una imagen PNG de tu informe de privacidad para compartir en redes.
+- **Auto-limpieza programada** — Limpieza en segundo plano por inactividad o intervalo, con modo sigilo.
+- **Notificaciones** — Avisos nativos de limpieza completada y logros desbloqueados.
+- **Modo Demo** — Tour guiado interactivo para conocer la app en menos de un minuto.
+- **4 temas** — Oscuro, oscuro de alto contraste, claro y claro de alto contraste, con deteccion del tema del sistema y 8 colores de acento.
+- **Actualizaciones verificadas** — Descarga desde GitHub Releases y verifica SHA-256 y firma Ed25519 antes de instalar.
+- **Extensión de navegador** — Companion MV3 para Chrome/Edge/Brave que refuerza el bloqueo de dominios de IA.
 - **Instalador real** — `duAI-Setup.exe` con atajos de Inicio, escritorio, desinstalador y opcion de auto-inicio al iniciar sesion.
-- **Modo portable** — Ejecuta `duAI.exe --portable` para no escribir configuracion persistente (ideal para USB).
+- **Modo portable real** — `duAI.exe --portable` guarda todo en `duAI_data` junto al ejecutable; no escribe en `%LOCALAPPDATA%`.
 
 ## Features
 
 - **Scan** — Analyzes 30+ targets in parallel with real-time progress bar
-- **Clean** — Selective removal: recycle bin, quarantine or permanent
-- **Panic** — Emergency one-click silent total wipe
+- **Clean** — Selective removal: recycle bin, quarantine or permanent (confirmation required)
+- **Quick Clean** — One-click cleanup of the most common traces
+- **Panic** — Emergency total wipe with explicit confirmation and configurable destination
 - **Protected Session** — Isolated browsing for ChatGPT, Claude, Gemini and more
 - **Isolated Terminal** — Run OpenCode, Claude Code, Codex CLI in a sandbox
 - **Stealth Mode** — duAI cleans itself on exit
-- **Telemetry Blocking** — Blocks 13 AI domains via hosts file
+- **Telemetry Blocking** — Blocks AI telemetry domains via hosts file
+- **Analytics & Privacy Score** — Local-only history and charts
+- **Achievements, streaks and streak sharing** — Optional local gamification
+- **Verified updates** — SHA-256 + Ed25519 verification before install
+- **Browser extension** — MV3 companion for Chromium browsers
 - **i18n** — Interface in Spanish and English
 
 ## Design
 
-100% monochrome. All black or all white. No grays, no colors, no compromises.
+Four themes (dark, high-contrast dark, light, high-contrast light) with eight accent colors and automatic system-theme detection. Pure black is still the default.
 
 ---
 
@@ -90,12 +104,12 @@ duAI escanea **6 objetivos simultaneamente** con ThreadPoolExecutor. Muestra pro
 
 ## Interfaces
 
-### Temas puros
+### Temas
 
-Alterna entre **todo blanco** y **todo negro** con un clic. Sin mezclas, sin grises.
+Elige entre **oscuro**, **oscuro de alto contraste**, **claro** y **claro de alto contraste**, o deja que duAI detecte el tema del sistema. Incluye 8 acentos de color.
 
-- Boton en el sidebar
-- Comando: `tema claro` / `tema oscuro`
+- Selector en Ajustes > Apariencia
+- Comando: `tema oscuro` / `tema claro` / `tema oscuro_hc` / `tema claro_hc`
 - Se guarda y restaura al reiniciar
 
 ### Animaciones
@@ -129,8 +143,10 @@ Widget always-on-top que se puede arrastrar por la pantalla:
 | **PANICO** | Limpieza total silenciosa con destino configurable |
 | **AJUSTES** | Contrasena, exclusiones, modo sigilo, cuarentena, hosts, programador |
 | **TERMINAL** | Consola PTY real con integracion de herramientas CLI aisladas |
-| **LOGROS** | Logros desbloqueados, estadisticas de uso, compartir en redes |
-| **ACTUALIZACIONES** | Comprobar y descargar nuevas versiones desde GitHub |
+| **LOGROS** | Logros desbloqueados, estadisticas de uso, racha, desafios y compartir en redes |
+| **ACTUALIZACIONES** | Comprobar y descargar nuevas versiones desde GitHub con verificacion |
+| **ANALÍTICAS** | Graficos de actividad, categorias, tendencia del Privacy Score y relacion escaneo/limpieza |
+| **DEMO** | Tour guiado interactivo por las funciones de duAI |
 
 ---
 
@@ -182,6 +198,18 @@ PS> dir
 
 ---
 
+## Extensión de navegador
+
+Incluye una extensión Manifest V3 (`browser_extension/`) para Chrome, Edge y Brave:
+
+- Declarative Net Request que bloquea dominios de telemetria de IA.
+- Indicador del estado de proteccion y contador de bloqueos.
+- Totalmente local: no envia datos a ningun servidor.
+
+Para instalarla: `chrome://extensions` → activa **Modo de desarrollador** → **Cargar descomprimida** → selecciona `browser_extension/`.
+
+---
+
 ## Comandos CLI
 
 | Comando | Descripcion |
@@ -193,7 +221,7 @@ PS> dir
 | `sesion <sitio>` | Abre ChatGPT/Claude/Gemini en perfil temporal |
 | `apps` | Lista apps de IA instaladas |
 | `desinstalar <app>` | Desinstala una app de IA |
-| `tema claro\|oscuro` | Cambia el tema |
+| `tema <modo>` | Cambia el tema: `oscuro`, `oscuro_hc`, `claro`, `claro_hc` |
 | `widget si\|no` | Activa/desactiva el boton flotante |
 | `exportar txt\|csv` | Exporta el ultimo escaneo |
 | `destino <modo>` | Cambia papelera/cuarentena/permanente |
@@ -314,8 +342,11 @@ Con **modo sigilo** activo, la bitacora se vacia automaticamente en cada cierre.
 - **pywinpty** para terminal PTY real
 - **ThreadPoolExecutor** para escaneo paralelo
 - **SQLite read-only** para conteo real de visitas a sitios de IA
-- PyInstaller para exe portable
-- 25+ tests unitarios
+- **QtCharts** para los graficos de analiticas
+- Configuración versionada con migracion, cifrado (Fernet) y backup/restore
+- Logging con rotacion y purga asincrona
+- PyInstaller para exe portable + Inno Setup para el instalador
+- Suites de pruebas: smoke, e2e, modulos y UI
 
 ---
 

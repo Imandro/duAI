@@ -27,9 +27,15 @@ SolidCompression=yes
 PrivilegesRequired=admin
 Uninstallable=yes
 ChangesEnvironment=no
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=yes
-PrivilegesRequired=admin
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+SetupIconFile=assets\duAI.ico
+UninstallDisplayName=duAI
+UninstallDisplayIcon={app}\{#MyAppExeName}
+WizardStyle=modern
+DisableProgramGroupPage=yes
+VersionInfoVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersion}
 
 [Languages]
 Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
@@ -37,19 +43,21 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "autostart"; Description: "Ejecutar duAI al iniciar sesion"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
 Source: "dist\duAI.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "config\*"; DestDir: "{app}\config"; Flags: ignoresubdirignoreversion
-Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoresubdirignoreversion
+Source: "config\*"; DestDir: "{app}\config"; Flags: recursesubdirs createallsubdirs ignoreversion
+Source: "assets\*"; DestDir: "{app}\assets"; Flags: recursesubdirs createallsubdirs ignoreversion
+
+[Registry]
+; Inicio de sesion (solo si el usuario lo eligio; se borra al desinstalar)
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "duAI"; ValueData: """{app}\{#MyAppExeName}"""; Flags: uninsdeletevalue; Tasks: autostart
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{commondesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
-Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall skipifsilent
@@ -65,22 +73,8 @@ begin
   if CurStep = ssPostInstall then
   begin
     // Nota: no crear tarea de autostart automaticamente por seguridad.
-    // El usuario puede activarla desde Ajustes > Programador.
+    // El usuario puede activarla desde Ajustes > Programador, o marcando
+    // "Ejecutar duAI al iniciar sesion" en este instalador (tarea opcional).
   end;
 end;
 
-function UninstallNeeded: Boolean;
-begin
-  Result := True;
-end;
-
-procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
-begin
-  if CurUninstallStep = ssUninstall then
-  begin
-    // Limpiar datos de usuario en %LOCALAPPDATA%\duAI
-    // Nota: Inno Setup no puede borrar facilmente rutas de variables de entorno
-    // sin llamar a un script externo. Se deja a cargo del usuario o de un script
-    // de desinstalacion adicional si se requiere limpieza profunda.
-  end;
-end;

@@ -34,9 +34,11 @@ from .ui.animations import (
     fade_window,
     theme_dip,
 )
+from .ui.analytics_view import AnalyticsView
 from .ui.clean_view import CleanView
 from .ui.console_view import CliBar
 from .ui.dashboard import DashboardView
+from .ui.demo_view import DemoView
 from .ui.panic_float import PanicFloatWidget
 from .ui.panic_widget import PanicWidget
 from .ui.scan_view import ScanView
@@ -82,7 +84,12 @@ class LoginDialog(QDialog):
 
 
 class MainWindow(QMainWindow):
-    NAV = [t("nav.resumen"), t("nav.escaneo"), t("nav.limpieza"), t("nav.sesion"), t("nav.panico"), t("nav.ajustes"), t("nav.terminal"), t("viral.title"), t("updater.title")]
+    NAV = [
+        t("nav.resumen"), t("nav.escaneo"), t("nav.limpieza"),
+        t("nav.sesion"), t("nav.panico"), t("nav.ajustes"),
+        t("nav.terminal"), t("viral.title"), t("updater.title"),
+        t("analytics.title"), t("demo.title"),
+    ]
 
     def __init__(self):
         super().__init__()
@@ -171,6 +178,20 @@ class MainWindow(QMainWindow):
         self.terminal_view = TerminalView(self)
         self.viral_view = ViralView(self)
         self.updater_view = UpdaterView(self)
+        self.analytics_view = AnalyticsView(self)
+        self.demo_view = DemoView(self)
+        # objectNames: los permite localizar el tour guiado (demo_view)
+        self.dashboard_view.setObjectName("dashboardView")
+        self.scan_view.setObjectName("scanView")
+        self.clean_view.setObjectName("cleanView")
+        self.session_view.setObjectName("sessionView")
+        self.panic_widget.setObjectName("panicWidget")
+        self.settings_view.setObjectName("settingsView")
+        self.terminal_view.setObjectName("terminalView")
+        self.viral_view.setObjectName("viralView")
+        self.updater_view.setObjectName("updaterView")
+        self.analytics_view.setObjectName("analyticsView")
+        self.demo_view.setObjectName("demoView")
         for view in (
             self.dashboard_view,
             self.scan_view,
@@ -181,6 +202,8 @@ class MainWindow(QMainWindow):
             self.terminal_view,
             self.viral_view,
             self.updater_view,
+            self.analytics_view,
+            self.demo_view,
         ):
             self.stack.addWidget(view)
 
@@ -236,8 +259,23 @@ class MainWindow(QMainWindow):
         self._setup_tray()
         self.restart_hotkey()
         self.restart_auto_timer()
+        self.demo_active = False
         if get_settings().get("float_visible"):
             self.show_panic_float(persist=False)
+
+        # Servicio de limpieza automatica en segundo plano (deteccion de inactividad)
+        try:
+            from .core.auto_clean import start_auto_clean
+            start_auto_clean()
+        except Exception:
+            pass
+
+        # Atajo de teclado: tour guiado
+        try:
+            from PySide6.QtGui import QShortcut, QKeySequence
+            QShortcut(QKeySequence("Ctrl+D"), self, activated=self.start_demo_tour)
+        except Exception:
+            pass
 
         # Comprobar actualizaciones al arrancar (si esta habilitado)
         if should_check_on_startup():
@@ -284,6 +322,8 @@ class MainWindow(QMainWindow):
     # ---------------- navegacion ----------------
 
     def navigate(self, index):
+        if index >= len(self.nav_buttons):
+            return
         self.nav_buttons[index].setChecked(True)
         self.stack.setCurrentIndexAnimated(index)
         # Refrescar logros al entrar a la pestaña viral
@@ -298,6 +338,51 @@ class MainWindow(QMainWindow):
                         self.cli_output(t("viral.new_achievement", name=ach["name"]))
             except Exception:
                 pass
+        # Refrescar analytics al entrar
+        elif index == self.stack.indexOf(self.analytics_view):
+            try:
+                self.analytics_view.refresh()
+            except Exception:
+                pass
+
+    def apply_theme(self):
+        """Re-aplica el tema actual a toda la aplicacion."""
+        from PySide6.QtWidgets import QApplication
+        from .ui.theme import apply_theme, current_mode
+
+        apply_theme(
+            QApplication.instance(),
+            current_mode(),
+            get_settings().get("accent_color") or "",
+        )
+        self._update_logo()
+        if self._float_widget:
+            self._float_widget.setStyleSheet("")
+        self.tray.setIcon(self._make_tray_icon())
+
+    def refresh_ui_text(self):
+        """Reconstruye la interfaz para aplicar un nuevo idioma."""
+        # Navegacion
+        for index, btn in enumerate(self.nav_buttons):
+            if index < len(self.NAV):
+                btn.setText(self.NAV[index])
+        # Recargar vistas con textos
+        self.refresh_settings_page()
+        try:
+            self.dashboard_view.refresh_stats()
+        except Exception:
+            pass
+
+    def start_demo_tour(self):
+        """Inicia el tour guiado de la aplicacion."""
+        index = self.stack.indexOf(self.demo_view)
+        if index >= 0:
+            self.navigate(index)
+        # Arrancar directamente el tour (sin pasar por la pantalla de bienvenida)
+        try:
+            self.demo_view._start_demo()
+        except Exception:
+            pass
 
     def _theme_btn_label(self):
         return t("app.theme_dark") if get_settings().get("ui_mode") != "oscuro" else t("app.theme_light")
@@ -561,12 +646,23 @@ class MainWindow(QMainWindow):
             purge_logs()
             purge_own_recent_links()
             try:
-                from ..core.viral import get_stats
+                from .core.viral import get_stats
                 get_stats().record_stealth_exit()
             except Exception:
                 pass
         if self._hotkey_worker:
             self._hotkey_worker.stop()
+        # Detener servicios en segundo plano
+        try:
+            from .core.auto_clean import stop_auto_clean
+            stop_auto_clean()
+        except Exception:
+            pass
+        try:
+            from .core.scheduler import stop_scheduler
+            stop_scheduler()
+        except Exception:
+            pass
         event.accept()
 
 
@@ -594,6 +690,85 @@ def _logo_path():
     return ""
 
 
+def shutdown_services(window=None, timeout: float = 3.0):
+    """Detiene hilos y servicios antes de salir.
+
+    Evita el crash tipico al cerrar: un QThread (Worker) o un hilo de red
+    siguiendo vivo mientras Qt/Python destruyen los objetos.
+    """
+    # 1. Hilos Qt vivos (Workers de escaneo, limpieza, descargas)
+    try:
+        from PySide6.QtCore import QCoreApplication, QThread
+
+        app = QCoreApplication.instance()
+        threads = app.findChildren(QThread) if app else []
+        if window is not None:
+            threads = list({id(t): t for t in list(threads) + list(window.findChildren(QThread))}.values())
+        for thread in threads:
+            try:
+                if thread.isRunning():
+                    thread.requestInterruption()
+                    thread.quit()
+                    thread.wait(int(timeout * 1000))
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # 2. Atajo global
+    try:
+        if window is not None and getattr(window, "_hotkey_worker", None):
+            window._hotkey_worker.stop()
+            window._hotkey_worker = None
+    except Exception:
+        pass
+
+    # 3. Servicios en segundo plano
+    for module_name, func_name in (
+        ("duai.core.auto_clean", "stop_auto_clean"),
+        ("duai.core.scheduler", "stop_scheduler"),
+    ):
+        try:
+            import importlib
+
+            getattr(importlib.import_module(module_name), func_name)()
+        except Exception:
+            pass
+
+    # 4. Hilos de red (actualizaciones) - esperar a que terminen el TLS
+    try:
+        from .core.updater import join_update_checkers
+
+        join_update_checkers(timeout)
+    except Exception:
+        pass
+
+    # 5. Logger: vaciar la cola y unir el hilo
+    try:
+        from .utils.logger import shutdown_logging
+
+        shutdown_logging()
+    except Exception:
+        pass
+
+
+_SHUTDOWN_STATE = {"done": False}
+
+
+def _register_atexit_cleanup(window):
+    """Garantiza la limpieza aunque la app salga sin pasar por aboutToQuit
+    (Ctrl+C, exit() desde scripts, excepcion no controlada)."""
+    import atexit
+
+    def _cleanup():
+        if _SHUTDOWN_STATE["done"]:
+            return
+        _SHUTDOWN_STATE["done"] = True
+        shutdown_services(window)
+
+    atexit.register(_cleanup)
+
+
 def create_app(argv=None):
     argv = list(sys.argv if argv is None else argv)
     app = QApplication(argv)
@@ -614,6 +789,10 @@ def create_app(argv=None):
 
     apply_theme(app, "oscuro")
     window = MainWindow()
+
+    # Limpieza ordenada al salir de cualquier forma (boton cerrar, quit, Ctrl+C)
+    app.aboutToQuit.connect(lambda: shutdown_services(window))
+    _register_atexit_cleanup(window)
     return app, window
 
 
@@ -622,6 +801,9 @@ def run_gui():
     if auth.has_password():
         dialog = LoginDialog()
         if not dialog.exec():
+            shutdown_services(window)
             return 0
     window.show()
-    return app.exec()
+    code = app.exec()
+    shutdown_services(window)
+    return code

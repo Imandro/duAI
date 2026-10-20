@@ -483,10 +483,18 @@ class CommandRouter:
         self.mw.refresh_settings_page()
 
     def cmd_tema(self, args, flags):
-        if not args or args[0].lower() not in ("oscuro",):
+        from ..ui.theme import AVAILABLE_THEMES, normalize_theme_id
+        if not args:
             self.out(t("cli.theme_usage"))
+            self.out("  " + ", ".join(f"{k}={v}" for k, v in AVAILABLE_THEMES.items()))
             return
-        self.mw.apply_ui_mode("oscuro")
+        mode = normalize_theme_id(args[0])
+        if not mode or mode not in AVAILABLE_THEMES:
+            self.out(t("cli.theme_invalid", value=args[0]))
+            self.out(t("cli.theme_usage"))
+            self.out("  " + ", ".join(f"{k}={v}" for k, v in AVAILABLE_THEMES.items()))
+            return
+        self.mw.apply_ui_mode(mode)
 
     def cmd_widget(self, args, flags):
         if not args or args[0].lower() not in ("si", "no"):

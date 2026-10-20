@@ -1,0 +1,26 @@
+"""duAI core modules."""
+
+__all__ = [
+    "scanner",
+    "cleaner",
+    "quarantine",
+    "targets",
+    "reporter",
+    "session",
+    "panic",
+    "browser_tabs",
+    "registry_clean",
+    "system_clean",
+    "selfclean",
+    "uninstaller",
+    "viral",
+    "privacy_score",
+    "quick_clean",
+    "streak",
+    "notifications",
+    "report_image",
+    "updater",
+    "scheduler",
+    "auto_clean",
+    "leaderboard",
+]

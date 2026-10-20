@@ -5,11 +5,23 @@ logros, stats, etc. Lista para compartir en Twitter, Telegram, etc.
 """
 
 import os
+import sys
 from datetime import datetime
 
 from PySide6.QtCore import Qt, QRect, QSize
 from PySide6.QtGui import QFont, QFontMetrics, QPainter, QColor, QPixmap, QBrush, QPen
 from PySide6.QtWidgets import QApplication
+
+
+def _ensure_app():
+    """Garantiza que exista una QApplication/QGuiApplication.
+
+    QPixmap requiere una QApplication; sin ella Qt aborta el proceso
+    (crash 0xC0000409 en Windows).
+    """
+    if QApplication.instance() is None:
+        return QApplication([])
+    return QApplication.instance()
 
 
 def _base_dir():
@@ -33,6 +45,8 @@ def generate_report_image(score, found_count, freed_bytes, streak_days, achievem
     """
     if output_path is None:
         output_path = os.path.join(_base_dir(), "privacy_report.png")
+
+    _ensure_app()
 
     width, height = 800, 500
     pixmap = QPixmap(width, height)
@@ -122,9 +136,12 @@ def _fmt_bytes(n):
     return f"{n / (1024 * 1024 * 1024):.2f} GB"
 
 
-def generate_and_open(score, found_count, freed_bytes, streak_days, achievements_unlocked):
-    """Genera la imagen y la abre con el visor por defecto."""
+def generate_and_open(score, found_count, freed_bytes, streak_days, achievements_unlocked,
+                      open_file=True):
+    """Genera la imagen y (opcionalmente) la abre con el visor por defecto."""
     path = generate_report_image(score, found_count, freed_bytes, streak_days, achievements_unlocked)
+    if not open_file or os.environ.get("DUAI_NO_OPEN"):
+        return path
     try:
         import subprocess
         if sys.platform == "win32":

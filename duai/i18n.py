@@ -1,797 +1,287 @@
-"""Internationalization module for duAI."""
+"""Internacionalización para duAI - Archivos externos, pluralización, fallbacks."""
+
+import json
+import os
+import threading
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from .utils.settings import get_settings
 
-_TRANSLATIONS = {
-    "es": {
-        # NAV
-        "nav.resumen": "RESUMEN",
-        "nav.escaneo": "ESCANEO",
-        "nav.limpieza": "LIMPIEZA",
-        "nav.sesion": "SESION",
-        "nav.panico": "PANICO",
-        "nav.ajustes": "AJUSTES",
-        "nav.terminal": "TERMINAL",
-        # APP
-        "app.title": "duAI",
-        "app.restricted": "ACCESO RESTRINGIDO",
-        "app.password": "Contrasena",
-        "app.enter": "ENTRAR",
-        "app.wrong_password": "CONTRASENA INCORRECTA",
-        "app.cmd_output": "SALIDA DE COMANDOS",
-        "app.hide": "OCULTAR",
-        "app.theme_dark": "MODO OSCURO",
-        "app.theme_light": "MODO OSCURO",
-        "app.theme_applied": "Tema aplicado: {mode}.",
-        "app.processing": "PROCESANDO...",
-        "app.tray_open": "ABRIR duAI",
-        "app.tray_scan": "ESCANEAR AHORA",
-        "app.tray_panic": "PANICO",
-        "app.tray_float": "BOTON FLOTANTE",
-        "app.tray_quit": "SALIR",
-        "app.auto_clean_done": "Auto-limpieza completada.",
-        # DASHBOARD
-        "dash.status": "ESTADO",
-        "dash.hero": "Privacidad absoluta.",
-        "dash.body": "duAI detecta y elimina los rastros que las herramientas de inteligencia artificial dejan en tu equipo: aplicaciones, navegadores, registro, DNS, portapapeles y cronologia. Todo se procesa localmente. Nada sale de tu computadora.",
-        "dash.traces": "RASTROS DETECTADOS",
-        "dash.risk": "ESPACIO EN RIESGO",
-        "dash.freed": "LIBERADO ESTA SESION",
-        "dash.last_scan": "ULTIMO ESCANEO",
-        "dash.never": "NUNCA",
-        "dash.btn_scan": "INICIAR ESCANEO",
-        "dash.btn_clean": "IR A LIMPIEZA",
-        "dash.footer": "SIN TELEMETRIA  .  SIN CUENTAS  .  SIN CONEXION EXTERNA",
-        # SCAN
-        "scan.title": "DETECTOR DE RASTROS",
-        "scan.subtitle": "Escaneo",
-        "scan.cancel": "CANCELAR",
-        "scan.btn_scan": "ESCANEAR",
-        "scan.export_txt": "EXPORTAR TXT",
-        "scan.export_csv": "EXPORTAR CSV",
-        "scan.col_target": "OBJETIVO",
-        "scan.col_category": "CATEGORIA",
-        "scan.col_status": "ESTADO",
-        "scan.col_items": "ELEMENTOS",
-        "scan.col_size": "TAMANO",
-        "scan.no_data": "SIN DATOS. EJECUTA UN ESCANEO.",
-        "scan.scanning": "ESCANEANDO...",
-        "scan.progress": "{current}/{total} objetivos",
-        "scan.progress_time": "{current}/{total} objetivos . {elapsed}s",
-        "scan.done": "{found} OBJETIVOS CON RASTROS . {bytes} BYTES . {elapsed}s . {time}",
-        "scan.error": "Error durante el escaneo: ",
-        "scan.more": "... y {count} mas",
-        "scan.no_paths": "Sin rutas",
-        "scan.export_title_txt": "Exportar TXT",
-        "scan.export_title_csv": "Exportar CSV",
-        "scan.export_file_txt": "duai_reporte.txt",
-        "scan.export_file_csv": "duai_reporte.csv",
-        # CLEAN
-        "clean.title": "LIMPIEZA SELECTIVA",
-        "clean.subtitle": "Limpieza",
-        "clean.btn_exec": "EJECUTAR LIMPIEZA",
-        "clean.preview": "VISTA PREVIA",
-        "clean.mode_recycle": "PAPELERA DE RECICLAJE",
-        "clean.mode_quarantine": "CUARENTENA RESTAURABLE",
-        "clean.mode_permanent": "ELIMINACION PERMANENTE",
-        "clean.select_all": "SELECCIONAR TODO",
-        "clean.deselect_all": "DESELECCIONAR TODO",
-        "clean.placeholder": "El registro de limpieza aparecera aqui.",
-        "clean.select_target": "Selecciona al menos un objetivo.",
-        "clean.processing": "PROCESANDO...",
-        "clean.before_after": "--- ANTES / DESPUES ---",
-        "clean.error": "Error durante la limpieza: ",
-        "clean.confirm_permanent_title": "CONFIRMAR ELIMINACION PERMANENTE",
-        "clean.confirm_permanent_msg": "Vas a eliminar elementos de forma PERMANENTE.\n\nNo se podran recuperar desde la papelera ni de la cuarentena.\n¿Estas seguro de continuar?",
-        # PANIC
-        "panic.response": "RESPUESTA INMEDIATA",
-        "panic.mode": "Modo panico",
-        "panic.desc": "Ejecuta una limpieza total silenciosa de todos los objetivos activos: aplicaciones de IA, historial de IA en navegadores, registro, DNS, portapapeles, cronologia y ubicacion. Sin ventanas de confirmacion.",
-        "panic.btn": "PANICO",
-        "panic.destination": "DESTINO",
-        "panic.auto_clean": "AUTO-LIMPIEZA AL CERRAR duAI",
-        "panic.interval": "INTERVALO AUTOMATICO (MIN, 0=OFF)",
-        "panic.hotkey": "TECLA GLOBAL CTRL+ALT+D",
-        "panic.hotkey_active": "ACTIVA",
-        "panic.float": "BOTON FLOTANTE",
-        "panic.float_show": "ACTIVAR WIDGET EN PANTALLA",
-        "panic.float_size": "TAMANO",
-        "panic.admin_note": "NOTA: PREFETCH Y HOSTS REQUIEREN PERMISOS DE ADMINISTRADOR Y SE OMITE EN MODO PANICO SI NO LOS HAY.",
-        "panic.cleaning": "LIMPIANDO...",
-        "panic.error": "Error en modo panico: ",
-        "panic.confirm_title": "CONFIRMAR MODO PANICO",
-        "panic.confirm_msg": "Esto ejecutara una limpieza total silenciosa en modo {mode}.\n\nEsta accion borrara rastros de IA, historial, registro y mas.\nNo se puede deshacer si el modo es permanente.\n\n¿Estas seguro?",
-        # SESSION
-        "session.title": "NAVEGACION SIN RASTRO",
-        "session.subtitle": "Sesion protegida",
-        "session.body": "Abre la web de IA que elijas en un perfil temporal aislado. Al cerrar la sesion protegida, el navegador se cierra y todo el perfil (cookies, sesiones, cache, historial) se destruye. Tu perfil real permanece intacto.",
-        "session.browser": "NAVEGADOR",
-        "session.no_browser": "NO SE ENCONTRO CHROME, EDGE NI BRAVE",
-        "session.open_site": "ABRIR SITIO",
-        "session.inactive": "SESION INACTIVA",
-        "session.close_btn": "CERRAR SESION Y DESTRUIR PERFIL",
-        "session.cli_title": "HERRAMIENTAS DE CONSOLA SEGURA",
-        "session.cli_body": "Ejecuta herramientas de IA de consola (opencode, claude, codex, etc.) en un entorno aislado. Todo lo que escriban queda dentro del sandbox. Al terminar, se borran los rastros automaticamente.",
-        "session.cwd": "CARPETA DE TRABAJO",
-        "session.start": "INICIAR SESION SEGURA",
-        "session.stop": "TERMINAR Y BORRAR RASTROS",
-        "session.unsupported": "SITIO NO SOPORTADO: {site}",
-        "session.no_browser_found": "No hay navegador compatible disponible.",
-        "session.active": "SESION PROTEGIDA ACTIVA . {url}",
-        "session.already_active": "Ya hay una sesion activa. Cierrala antes de abrir otra.",
-        "session.closed": "Sesion cerrada y perfil destruido.",
-        "session.close_warning": "[AVISO] el perfil no pudo eliminarse por completo.",
-        "session.active_url": "SESION ACTIVA . {url}",
-        "session.pick_folder": "Seleccionar carpeta de trabajo",
-        "session.select_tool": "Selecciona una herramienta primero.",
-        "session.start_error": "No se pudo iniciar la sesion. Verifica que la herramienta este instalada.",
-        # SETTINGS
-        "set.title": "CONFIGURACION",
-        "set.subtitle": "Ajustes",
-        "set.pwd_section": "Contrasena de acceso",
-        "set.pwd_active": "Protege duAI con contrasena. Se guarda localmente con derivacion PBKDF2.",
-        "set.pwd_none": "Sin contrasena. Cualquiera con acceso a tu sesion puede abrir duAI.",
-        "set.pwd_new": "Nueva contrasena",
-        "set.pwd_confirm": "Confirmar",
-        "set.pwd_set": "ESTABLECER",
-        "set.pwd_remove": "QUITAR",
-        "set.pwd_min": "Usa al menos 4 caracteres.",
-        "set.pwd_mismatch": "Las contrasenas no coinciden.",
-        "set.pwd_done": "Contrasena establecida.",
-        "set.pwd_removed": "Contrasena eliminada.",
-        "set.excl_section": "Exclusiones (nunca se limpian)",
-        "set.stealth_section": "Modo sigilo",
-        "set.stealth_check": "PURGAR LOS REGISTROS DE duAI AL CERRAR",
-        "set.stealth_hint": "Con el modo sigilo activo, duAI borra su propia bitacora local y los accesos recientes que lo mencionen cada vez que se cierra.",
-        "set.self_destruct": "ELIMINAR TODOS LOS DATOS DE duAI",
-        "set.self_destruct_msg": "Se eliminaran la configuracion, la contrasena, las exclusiones, la cuarentena y los registros de duAI. La aplicacion se cerrara despues. Continuar?",
-        "set.data_deleted": "Datos locales eliminados.",
-        "set.quarantine_section": "Cuarentena restaurable",
-        "set.quarantine_count": "{count} elementos en cuarentena.",
-        "set.quarantine_restore": "RESTAURAR TODO",
-        "set.quarantine_empty": "VACIAR CUARENTENA",
-        "set.float_section": "Boton flotante de panico",
-        "set.float_check": "MOSTRAR BOTON FLOTANTE EN PANTALLA",
-        "set.float_hint": "Widget always-on-top que se puede arrastrar. Click izquierdo ejecuta panico, click derecho muestra opciones.",
-        "set.float_size": "TAMANO",
-        "set.uninstall_section": "Desinstalacion avanzada de apps de IA",
-        "set.uninstall_warn": "ZONA AVANZADA. Desinstala completamente las aplicaciones seleccionadas y despues limpia sus rastros locales (cache, registro, historial). La accion no se puede deshacer: las apps desaparecen del equipo, no solo sus rastros.",
-        "set.no_apps": "No se detectaron aplicaciones de IA instaladas.",
-        "set.silent": "silenciable",
-        "set.assisted": "asistido",
-        "set.uninstall_btn": "DESINSTALAR SELECCIONADAS Y LIMPIAR RASTROS",
-        "set.redetect": "REDETECTAR",
-        "set.select_app": "Marca al menos una aplicacion para desinstalar.",
-        "set.uninstall_confirm": "Se desinstalaran estas aplicaciones y se borraran sus rastros:\n\n{names}\n\nContinuar?",
-        "set.traces_removed": "rastros: {count} elementos, {bytes} bytes liberados",
-        "set.ok": "[OK]",
-        "set.fail": "[FALLO]",
-        "set.restored": "{count} elementos restaurados.",
-        "set.quarantine_emptied": "Cuarentena vaciada ({count} elementos).",
-        "set.hosts_section": "Bloqueo de telemetria de IA (archivo hosts)",
-        "set.hosts_check": "REDIRIGIR DOMINIOS DE TELEMETRIA A 0.0.0.0",
-        "set.hosts_apply": "APLICAR",
-        "set.hosts_admin": "Requiere ejecutar duAI como administrador para modificar el archivo hosts.",
-        "set.hosts_done": "Archivo hosts actualizado.",
-        "set.hosts_perms": "Permisos insuficientes. Ejecuta duAI como administrador e intentalo de nuevo.",
-        "set.scheduler_section": "Programador de Windows",
-        "set.scheduler_active": "Tarea activa: duAI se limpia automaticamente en cada inicio de sesion.",
-        "set.scheduler_none": "Sin tarea programada.",
-        "set.scheduler_create": "CREAR TAREA AL INICIAR SESION",
-        "set.scheduler_delete": "ELIMINAR TAREA",
-        "set.scheduler_created": "Tarea creada.",
-        "set.scheduler_create_fail": "No se pudo crear la tarea.",
-        "set.scheduler_deleted": "Tarea eliminada.",
-        "set.scheduler_delete_fail": "No se pudo eliminar la tarea (puede que no exista).",
-        "set.logs_section": "Registro local",
-        "set.logs_open": "ABRIR CARPETA DE REGISTROS",
-        "set.logs_export": "GUARDAR COPIA DE CONFIGURACION",
-        "set.logs_save_title": "Guardar configuracion",
-        "set.logs_save_file": "duai_config.json",
-        # TERMINAL
-        "term.title": "TERMINAL",
-        "term.subtitle": "Herramientas de IA",
-        "term.hint": "Abre una sesion aislada de cualquier herramienta de IA en una ventana de PowerShell real. Todo queda dentro del sandbox y se borra al salir.",
-        "term.cwd": "CARPETA DE TRABAJO:",
-        "term.change": "CAMBIAR",
-        "term.no_session": "SIN SESION ACTIVA",
-        "term.close_session": "CERRAR SESION Y BORRAR RASTROS",
-        "term.info": "PowerShell se abre en una ventana real con entorno aislado. Al cerrar la ventana se borraran automaticamente los rastros.",
-        "term.pick_folder": "Seleccionar carpeta de trabajo",
-        "term.close_first": "Cierra la sesion actual primero.",
-        "term.ps_banner": "duAI SESION SEGURA: {tool}",
-        "term.ps_warning": "Al cerrar esta ventana se borrara todo.",
-        "term.active": "ACTIVA: {tool}",
-        "term.start_error": "No se pudo iniciar: {exc}",
-        # CONSOLE
-        "cli.help_title": "COMANDOS DISPONIBLES",
-        "cli.last_scan": "ULTIMO ESCANEO : {time} . {count} con rastros . {bytes}",
-        "cli.last_scan_none": "ULTIMO ESCANEO : ninguno todavia (usa ESCANEAR)",
-        "cli.dest_mode": "MODO DESTINO   : {mode}",
-        "cli.auto_status": "AUTO-LIMPIEZA  : cerrar={val} . intervalo={min} min . hotkey={val2} . sigilo={val3}",
-        "cli.excluded": "EXCLUIDOS      : {count}",
-        "cli.quarantine": "CUARENTENA     : {count} elementos . CONTRASENA: {pwd}",
-        "cli.session_state": "SESION PROTEGIDA: {state}",
-        "cli.session_active": "ACTIVA",
-        "cli.session_inactive": "inactiva",
-        "cli.freed": "LIBERADO ESTA SESION: {bytes}",
-        "cli.targets_count": "{count} objetivos",
-        "cli.no_chrome": "No se encontro Chrome, Edge ni Brave.",
-        "cli.no_browsers": "No se detectaron navegadores Chromium corriendo.",
-        "cli.no_ai_tabs": "No hay pestanas de IA abiertas.",
-        "cli.ai_tabs": "{count} pestanas de IA",
-        "cli.tabs_closed": "Pestanas cerradas: {count}",
-        "cli.tabs_confirm": "Anade --confirmar para cerrar las pestanas de IA.",
-        "cli.scan_started": "Escaneo iniciado. Resultados en la pestana ESCANEO.",
-        "cli.clean_usage": "USO: limpiar todo|apps|navegador|sistema|<id>... [--modo=X] [--confirmar]",
-        "cli.unknown_ids": "IDs desconocidos ignorados: ",
-        "cli.nothing_to_clean": "Nada que limpiar con esa seleccion.",
-        "cli.clean_real": "LIMPIEZA REAL",
-        "cli.clean_preview": "VISTA PREVIA",
-        "cli.clean_launched": "{verb} lanzada sobre {count} objetivos (destino: {mode}).",
-        "cli.panic_running": "MODO PANICO EN CURSO. Detalles en la pestana PANICO.",
-        "cli.panic_busy": "[ocupado] ya hay un panico en marcha.",
-        "cli.session_usage": "USO: sesion chatgpt|claude|gemini|perplexity|copilot|poe|deepseek",
-        "cli.no_apps": "No hay aplicaciones de IA registradas en el sistema.",
-        "cli.uninstall_hint": "-- usa DESINSTALAR <indice o nombre> [--confirmar]",
-        "cli.uninstall_usage": "USO: desinstalar <indice o nombre> [--confirmar]",
-        "cli.app_not_found": "APP NO ENCONTRADA. usa APPS para listar.",
-        "cli.app_no_uninstall": "Esta app no expone comando de desinstalacion util.",
-        "cli.simulation": "[SIMULACION] se ejecutaria:",
-        "cli.uninstall_confirm_hint": "Anade --confirmar para desinstalar de verdad (y limpiar sus rastros despues).",
-        "cli.uninstalled": "[OK] {name} desinstalada ({detail}).",
-        "cli.traces_after": "rastros posteriores: {count} elementos, {bytes} liberados",
-        "cli.uninstall_fail": "[FALLO] {name}: {detail}",
-        "cli.uninstalling": "DESINSTALANDO...",
-        "cli.dest_usage": "USO: destino papelera|cuarentena|permanente",
-        "cli.dest_invalid": "DESTINO INVALIDO. opciones: papelera, cuarentena, permanente",
-        "cli.dest_set": "Modo de destino: {value}",
-        "cli.exclude_usage": "USO: excluir <id>",
-        "cli.exclude_unknown": "ID desconocido: {id}",
-        "cli.excluded_list": "Excluidos (nunca se limpian): ",
-        "cli.allow_usage": "USO: permitir <id>",
-        "cli.allow_restored": "Vuelven a ser limpiables: ",
-        "cli.no_exclusions": "Sin exclusiones.",
-        "cli.autoexit_usage": "USO: autoexit si|no",
-        "cli.autoexit_set": "Limpieza automatica al cerrar: {val}",
-        "cli.interval_usage": "USO: intervalo <minutos 0-1440>",
-        "cli.interval_invalid": "MINUTOS INVALIDOS",
-        "cli.interval_set": "Auto-limpieza periodica cada {minutes} minutos.",
-        "cli.interval_off": "Auto-limpieza periodica desactivada.",
-        "cli.hotkey_usage": "USO: hotkey si|no",
-        "cli.hotkey_set": "Tecla global CTRL+ALT+D: {val}",
-        "cli.stealth_usage": "USO: sigilo si|no",
-        "cli.stealth_set": "Modo sigilo: {val}",
-        "cli.theme_usage": "USO: tema oscuro",
-        "cli.widget_usage": "USO: widget si|no",
-        "cli.widget_on": "Boton flotante activado.",
-        "cli.widget_off": "Boton flotante desactivado.",
-        "cli.pwd_usage": "USO: contrasena <clave (min 4)>",
-        "cli.pwd_min": "Usa al menos 4 caracteres.",
-        "cli.pwd_set": "Contrasena establecera. Se pedira al abrir duAI.",
-        "cli.pwd_removed": "Contrasena eliminada.",
-        "cli.hosts_usage": "USO: hosts si|no",
-        "cli.hosts_set": "Bloqueo de telemetria en hosts: {val}",
-        "cli.hosts_admin_error": "[ERROR] sin permisos de administrador para modificar el archivo hosts.",
-        "cli.task_usage": "USO: tarea crear|quitar",
-        "cli.task_created": "Tarea de inicio de sesion creada.",
-        "cli.task_create_fail": "No se pudo crear la tarea.",
-        "cli.task_deleted": "Tarea eliminada.",
-        "cli.task_delete_fail": "No se pudo eliminar (puede que no exista).",
-        "cli.task_invalid": "ACCION INVALIDA. usa crear o quitar.",
-        "cli.quarantine_usage": "USO: cuarentena ver|restaurar|vaciar",
-        "cli.quarantine_empty": "Cuarentena vacia.",
-        "cli.quarantine_lost": "[PERDIDO]",
-        "cli.quarantine_restored": "{count} elementos restaurados.",
-        "cli.quarantine_emptied": "Cuarentena vaciada ({count} borrados definitivamente).",
-        "cli.quarantine_invalid": "ACCION INVALIDA. usa ver, restaurar o vaciar.",
-        "cli.no_scan": "Aun no hay escaneo. Ejecuta ESCANEAR primero.",
-        "cli.export_invalid": "FORMATO INVALIDO. usa txt o csv.",
-        "cli.export_saved": "Reporte guardado: {path}",
-        "cli.export_error": "[ERROR] no se pudo guardar: {exc}",
-        "cli.purge_done": "Bitacora vaciada ({dir}) y {count} accesos recientes eliminados.",
-        "cli.placeholder": "comando...  (AYUDA para ver todos)",
-        "cli.timeout": "[TIMEOUT] comando tardo mas de 30 segundos",
-        "cli.code": "[codigo {code}]",
-        "cli.no_items": "nada",
-        "cli.silent": "silenciable",
-        "cli.assisted": "asistido",
-        "cli.excluded_label": "EXCLUIDO",
-        # CONSOLE HELP
-        "cli.help/ayuda": "Muestra esta ayuda.",
-        "cli.help/escanear": "Escanea todos los objetivos activos.",
-        "cli.help/limpiar": "Limpia objetivos seleccionados. Usa --confirmar para ejecutar.",
-        "cli.help/panico": "Limpieza total silenciosa.",
-        "cli.help/estado": "Muestra el estado actual de duAI.",
-        "cli.help/salir": "Cierra la consola.",
-        "cli.help/limpiarpantalla": "Limpia la pantalla de la consola.",
-        "cli.help/sesion": "Abre una sesion protegida en navegador.",
-        "cli.help/cerrarsesion": "Cierra la sesion protegida.",
-        "cli.help/terminal": "Abre la pestana terminal.",
-        "cli.help/pestanas": "Muestra pestanas de IA abiertas.",
-        "cli/help/cerrarpestanas": "Cierra pestanas de IA en el navegador.",
-        "cli.help/applications": "Lista apps de IA detectadas en el sistema.",
-        "cli/help/desinstalar": "Desinstala una app de IA seleccionada.",
-        "cli/help/destino": "Cambia el modo de destino (papelera, cuarentena, permanente).",
-        "cli/help/excluir": "Excluye un objetivo del escaneo.",
-        "cli/help/permitir": "Remueve un objetivo de la lista de exclusiones.",
-        "cli/help/autoexit": "Activa/desactiva la limpieza automatica al cerrar.",
-        "cli/help/intervalo": "Configura el intervalo de auto-limpieza periodica.",
-        "cli/help/hotkey": "Activa/desactiva la tecla global CTRL+ALT+D.",
-        "cli/help/sigilo": "Activa/desactiva el modo sigilo.",
-        "cli/help/tema": "Cambia el tema visual (solo oscuro).",
-        "cli/help/widget": "Activa/desactiva el boton flotante.",
-        "cli/help/contrasena": "Establece o elimina la contrasena de acceso.",
-        "cli/help/hosts": "Activa/desactiva el bloqueo de telemetria en hosts.",
-        "cli/help/tarea": "Crea o elimina la tarea de inicio de sesion.",
-        "cli/help/cuarentena": "Gestiona la cuarentena (ver, restaurar, vaciar).",
-        "cli/help/exportar": "Exporta el ultimo escaneo a TXT o CSV.",
-        "cli/help/purgar": "Purga la bitacora y accesos recientes de duAI.",
-        "cli.purge_done": "Bitacora vaciada ({dir}) y {count} accesos recientes eliminados.",
-        "cli.help_line.escanear": "ESCANEAR [filtro]      detecta rastros y abre la pestana ESCANEO (filtro: apps, navegador, sistema, id)",
-        "cli.help_line.lista": "LISTA [filtro]         objetivos del catalogo con sus ids",
-        "cli.help_line.estado": "ESTADO                 resumen actual de duAI",
-        "cli.help_line.limpiar": "LIMPIAR <sel>          sel: todo | apps | navegador | sistema | <id>...",
-        "cli.help_line.limpiar_opts": "                       --modo=papelera|cuarentena|permanente   --confirmar (sin esto: vista previa)",
-        "cli.help_line.panico": "PANICO                 limpieza total silenciosa",
-        "cli.help_line.sesion": "SESION <sitio>         chatgpt claude gemini perplexity copilot poe deepseek (perfil temporal)",
-        "cli.help_line.cerrarsesion": "CERRARSESION           destruye la sesion protegida activa",
-        "cli.help_line.cerrarpestanas": "CERRARPESTAÑAS         cierra pestañas de IA en navegadores Chromium (--confirmar)",
-        "cli.help_line.terminal": "TERMINAL [comando]     abre la terminal integrada o ejecuta un comando",
-        "cli.help_line.apps": "APPS                   lista apps de IA instaladas en el sistema",
-        "cli.help_line.desinstalar": "DESINSTALAR <app>      --confirmar para ejecutar; sin ella solo muestra el comando",
-        "cli.help_line.exportar": "EXPORTAR txt|csv       guarda el ultimo escaneo en el escritorio",
-        "cli.help_line.config1": "DESTINO <modo> · EXCLUIR <id> · PERMITIR <id> · EXCLUIDOS",
-        "cli.help_line.config2": "AUTOEXIT si|no · INTERVALO <min> · HOTKEY si|no · SIGILO si|no · TEMA oscuro · WIDGET si|no",
-        "cli.help_line.config3": "CONTRASENA <clave> · SINCONTRASENA · HOSTS si|no · TAREA crear|quitar",
-        "cli.help_line.config4": "CUARENTENA ver|restaurar|vaciar · NAVEGADORES · PURGARLOGS · LIMPIARPANTALLA · SALIR",
-        # PANIC FLOAT
-        "float.open": "ABRIR duAI",
-        "float.hide": "OCULTAR WIDGET",
-        "float.quit": "SALIR de duAI",
-        # LANGUAGE
-        "lang.section": "Idioma",
-        "lang.current": "ES",
-        # UPDATER
-        "updater.title": "Actualizaciones",
-        "updater.check": "BUSCAR ACTUALIZACIONES",
-        "updater.up_to_date": "duAI esta actualizado (version {version}).",
-        "updater.available": "Hay una version nueva disponible: {version}",
-        "updater.download": "DESCARGAR ACTUALIZACION",
-        "updater.download_done": "Actualizacion descargada: {path}",
-        "updater.error": "No se pudo comprobar actualizaciones: {error}",
-        "updater.check_on_startup": "Comprobar actualizaciones al iniciar",
-        # VIRAL / GAMIFICATION
-        "viral.title": "Logros y compartir",
-        "viral.achievements": "LOGROS DESTABLOQUEADOS",
-        "viral.no_achievements": "Aun no has desbloqueado logros.",
-        "viral.new_achievement": "NUEVO LOGRO: {name}",
-        "viral.share": "COMPARTIR EN REDES SOCIALES",
-        "viral.copy_report": "COPIAR REPORTE AL PORTAPAPELES",
-        "viral.report_title": "Reporte de privacidad duAI",
-        "viral.stats": "ESTADISTICAS DE USO",
-        "viral.scans": "Escaneos realizados",
-        "viral.cleans": "Limpiezas realizadas",
-        "viral.panics": "Modo panico usado",
-        "viral.freed": "Espacio liberado total",
-        "viral.streak": "Racha de dias activos",
-        "viral.accent": "Color de acento (opcional)",
-        "viral.accent_none": "Ninguno (monocromatico)",
-        "viral.accent_red": "Rojo neón",
-        "viral.accent_green": "Verde neón",
-        "viral.accent_blue": "Azul neón",
-        "viral.accent_purple": "Morado neón",
-        # INSTALADOR / PORTABLE
-        "setup.portable_mode": "MODO PORTABLE (sin instalador)",
-        "setup.installer_mode": "MODO INSTALADOR (con atajos y desinstalador)",
-        "setup.admin_required": "Se requieren permisos de administrador para algunas funciones.",
-        "setup.run_as_admin": "EJECUTAR COMO ADMINISTRADOR",
-    },
-    "en": {
-        # NAV
-        "nav.resumen": "DASHBOARD",
-        "nav.escaneo": "SCAN",
-        "nav.limpieza": "CLEAN",
-        "nav.sesion": "SESSION",
-        "nav.panico": "PANIC",
-        "nav.ajustes": "SETTINGS",
-        "nav.terminal": "TERMINAL",
-        # APP
-        "app.title": "duAI",
-        "app.restricted": "ACCESS RESTRICTED",
-        "app.password": "Password",
-        "app.enter": "ENTER",
-        "app.wrong_password": "INCORRECT PASSWORD",
-        "app.cmd_output": "COMMAND OUTPUT",
-        "app.hide": "HIDE",
-        "app.theme_dark": "DARK MODE",
-        "app.theme_light": "DARK MODE",
-        "app.theme_applied": "Theme applied: {mode}.",
-        "app.processing": "PROCESSING...",
-        "app.tray_open": "OPEN duAI",
-        "app.tray_scan": "SCAN NOW",
-        "app.tray_panic": "PANIC",
-        "app.tray_float": "FLOATING BUTTON",
-        "app.tray_quit": "QUIT",
-        "app.auto_clean_done": "Auto-clean completed.",
-        # DASHBOARD
-        "dash.status": "STATUS",
-        "dash.hero": "Absolute privacy.",
-        "dash.body": "duAI detects and removes traces left by AI tools on your computer: applications, browsers, registry, DNS, clipboard, and timeline. Everything is processed locally. Nothing leaves your computer.",
-        "dash.traces": "TRACES DETECTED",
-        "dash.risk": "SPACE AT RISK",
-        "dash.freed": "FREED THIS SESSION",
-        "dash.last_scan": "LAST SCAN",
-        "dash.never": "NEVER",
-        "dash.btn_scan": "START SCAN",
-        "dash.btn_clean": "GO TO CLEAN",
-        "dash.footer": "NO TELEMETRY  .  NO ACCOUNTS  .  NO EXTERNAL CONNECTIONS",
-        # SCAN
-        "scan.title": "TRACE DETECTOR",
-        "scan.subtitle": "Scan",
-        "scan.cancel": "CANCEL",
-        "scan.btn_scan": "SCAN",
-        "scan.export_txt": "EXPORT TXT",
-        "scan.export_csv": "EXPORT CSV",
-        "scan.col_target": "TARGET",
-        "scan.col_category": "CATEGORY",
-        "scan.col_status": "STATUS",
-        "scan.col_items": "ITEMS",
-        "scan.col_size": "SIZE",
-        "scan.no_data": "NO DATA. RUN A SCAN.",
-        "scan.scanning": "SCANNING...",
-        "scan.progress": "{current}/{total} targets",
-        "scan.progress_time": "{current}/{total} targets . {elapsed}s",
-        "scan.done": "{found} TARGETS WITH TRACES . {bytes} BYTES . {elapsed}s . {time}",
-        "scan.error": "Error during scan: ",
-        "scan.more": "... and {count} more",
-        "scan.no_paths": "No paths",
-        "scan.export_title_txt": "Export TXT",
-        "scan.export_title_csv": "Export CSV",
-        "scan.export_file_txt": "duai_report.txt",
-        "scan.export_file_csv": "duai_report.csv",
-        # CLEAN
-        "clean.title": "SELECTIVE CLEAN",
-        "clean.subtitle": "Clean",
-        "clean.btn_exec": "RUN CLEAN",
-        "clean.preview": "PREVIEW",
-        "clean.mode_recycle": "RECYCLE BIN",
-        "clean.mode_quarantine": "RESTORABLE QUARANTINE",
-        "clean.mode_permanent": "PERMANENT DELETION",
-        "clean.select_all": "SELECT ALL",
-        "clean.deselect_all": "DESELECT ALL",
-        "clean.placeholder": "Clean log will appear here.",
-        "clean.select_target": "Select at least one target.",
-        "clean.processing": "PROCESSING...",
-        "clean.before_after": "--- BEFORE / AFTER ---",
-        "clean.error": "Error during cleaning: ",
-        "clean.confirm_permanent_title": "CONFIRM PERMANENT DELETION",
-        "clean.confirm_permanent_msg": "You are about to delete items PERMANENTLY.\n\nThey cannot be recovered from the recycle bin or quarantine.\nAre you sure you want to continue?",
-        # PANIC
-        "panic.response": "IMMEDIATE RESPONSE",
-        "panic.mode": "Panic mode",
-        "panic.desc": "Performs a silent total wipe of all active targets: AI apps, AI browsing history, registry, DNS, clipboard, timeline and location. No confirmation dialogs.",
-        "panic.btn": "PANIC",
-        "panic.destination": "DESTINATION",
-        "panic.auto_clean": "AUTO-CLEAN ON EXIT",
-        "panic.interval": "AUTO INTERVAL (MIN, 0=OFF)",
-        "panic.hotkey": "GLOBAL HOTKEY CTRL+ALT+D",
-        "panic.hotkey_active": "ACTIVE",
-        "panic.float": "FLOATING BUTTON",
-        "panic.float_show": "ENABLE ON-SCREEN WIDGET",
-        "panic.float_size": "SIZE",
-        "panic.admin_note": "NOTE: PREFETCH AND HOSTS REQUIRE ADMIN PERMISSIONS AND ARE SKIPPED IN PANIC MODE IF NOT AVAILABLE.",
-        "panic.cleaning": "CLEANING...",
-        "panic.error": "Error in panic mode: ",
-        "panic.confirm_title": "CONFIRM PANIC MODE",
-        "panic.confirm_msg": "This will perform a silent total wipe in {mode} mode.\n\nIt will delete AI traces, history, registry entries, and more.\nThis action cannot be undone if the mode is permanent.\n\nAre you sure?",
-        # SESSION
-        "session.title": "TRACE-FREE BROWSING",
-        "session.subtitle": "Protected session",
-        "session.body": "Opens the AI web of your choice in an isolated temporary profile. When you close the protected session, the browser closes and the entire profile (cookies, sessions, cache, history) is destroyed. Your real profile stays intact.",
-        "session.browser": "BROWSER",
-        "session.no_browser": "CHROME, EDGE OR BRAVE NOT FOUND",
-        "session.open_site": "OPEN SITE",
-        "session.inactive": "SESSION INACTIVE",
-        "session.close_btn": "CLOSE SESSION & DESTROY PROFILE",
-        "session.cli_title": "SAFE CONSOLE TOOLS",
-        "session.cli_body": "Run AI console tools (opencode, claude, codex, etc.) in an isolated environment. Everything they write stays inside the sandbox. On exit, traces are automatically deleted.",
-        "session.cwd": "WORKING DIRECTORY",
-        "session.start": "START SAFE SESSION",
-        "session.stop": "STOP & DELETE TRACES",
-        "session.unsupported": "UNSUPPORTED SITE: {site}",
-        "session.no_browser_found": "No compatible browser available.",
-        "session.active": "PROTECTED SESSION ACTIVE . {url}",
-        "session.already_active": "A session is already active. Close it before opening another.",
-        "session.closed": "Session closed and profile destroyed.",
-        "session.close_warning": "[WARNING] Profile could not be completely removed.",
-        "session.active_url": "SESSION ACTIVE . {url}",
-        "session.pick_folder": "Select working directory",
-        "session.select_tool": "Select a tool first.",
-        "session.start_error": "Could not start session. Verify that the tool is installed.",
-        # SETTINGS
-        "set.title": "SETTINGS",
-        "set.subtitle": "Settings",
-        "set.pwd_section": "Access password",
-        "set.pwd_active": "Protect duAI with a password. Stored locally with PBKDF2 derivation.",
-        "set.pwd_none": "No password. Anyone with access to your session can open duAI.",
-        "set.pwd_new": "New password",
-        "set.pwd_confirm": "Confirm",
-        "set.pwd_set": "SET",
-        "set.pwd_remove": "REMOVE",
-        "set.pwd_min": "Use at least 4 characters.",
-        "set.pwd_mismatch": "Passwords do not match.",
-        "set.pwd_done": "Password set.",
-        "set.pwd_removed": "Password removed.",
-        "set.excl_section": "Exclusions (never cleaned)",
-        "set.stealth_section": "Stealth mode",
-        "set.stealth_check": "PURGE DUAI LOGS ON EXIT",
-        "set.stealth_hint": "With stealth mode active, duAI deletes its own local log and recent entries that mention it every time it closes.",
-        "set.self_destruct": "DELETE ALL DUAI DATA",
-        "set.self_destruct_msg": "Configuration, password, exclusions, quarantine and duAI logs will be deleted. The application will close after. Continue?",
-        "set.data_deleted": "Local data deleted.",
-        "set.quarantine_section": "Restorable quarantine",
-        "set.quarantine_count": "{count} items in quarantine.",
-        "set.quarantine_restore": "RESTORE ALL",
-        "set.quarantine_empty": "EMPTY QUARANTINE",
-        "set.float_section": "Panic floating button",
-        "set.float_check": "SHOW FLOATING BUTTON ON SCREEN",
-        "set.float_hint": "Always-on-top widget that can be dragged. Left click triggers panic, right click shows options.",
-        "set.float_size": "SIZE",
-        "set.uninstall_section": "Advanced AI app uninstallation",
-        "set.uninstall_warn": "ADVANCED ZONE. Completely uninstalls selected applications and then cleans their local traces (cache, registry, history). The action cannot be undone: apps disappear from the computer, not just their traces.",
-        "set.no_apps": "No installed AI applications detected.",
-        "set.silent": "silent",
-        "set.assisted": "assisted",
-        "set.uninstall_btn": "UNINSTALL SELECTED & CLEAN TRACES",
-        "set.redetect": "RE-DETECT",
-        "set.select_app": "Select at least one application to uninstall.",
-        "set.uninstall_confirm": "These applications will be uninstalled and their traces deleted:\n\n{names}\n\nContinue?",
-        "set.traces_removed": "traces: {count} items, {bytes} bytes freed",
-        "set.ok": "[OK]",
-        "set.fail": "[FAIL]",
-        "set.restored": "{count} items restored.",
-        "set.quarantine_emptied": "Quarantine emptied ({count} items).",
-        "set.hosts_section": "AI telemetry blocking (hosts file)",
-        "set.hosts_check": "REDIRECT TELEMETRY DOMAINS TO 0.0.0.0",
-        "set.hosts_apply": "APPLY",
-        "set.hosts_admin": "Requires running duAI as administrator to modify the hosts file.",
-        "set.hosts_done": "Hosts file updated.",
-        "set.hosts_perms": "Insufficient permissions. Run duAI as administrator and try again.",
-        "set.scheduler_section": "Windows Scheduler",
-        "set.scheduler_active": "Active task: duAI auto-cleans at every session start.",
-        "set.scheduler_none": "No scheduled task.",
-        "set.scheduler_create": "CREATE TASK ON LOGIN",
-        "set.scheduler_delete": "DELETE TASK",
-        "set.scheduler_created": "Task created.",
-        "set.scheduler_create_fail": "Could not create task.",
-        "set.scheduler_deleted": "Task deleted.",
-        "set.scheduler_delete_fail": "Could not delete task (may not exist).",
-        "set.logs_section": "Local log",
-        "set.logs_open": "OPEN LOG FOLDER",
-        "set.logs_export": "SAVE CONFIGURATION COPY",
-        "set.logs_save_title": "Save configuration",
-        "set.logs_save_file": "duai_config.json",
-        # TERMINAL
-        "term.title": "TERMINAL",
-        "term.subtitle": "AI Tools",
-        "term.hint": "Opens an isolated session of any AI tool in a real PowerShell window. Everything stays inside the sandbox and is deleted on exit.",
-        "term.cwd": "WORKING DIRECTORY:",
-        "term.change": "CHANGE",
-        "term.no_session": "NO ACTIVE SESSION",
-        "term.close_session": "CLOSE SESSION & DELETE TRACES",
-        "term.info": "PowerShell opens in a real window with isolated environment. Traces are automatically deleted when the window is closed.",
-        "term.pick_folder": "Select working directory",
-        "term.close_first": "Close the current session first.",
-        "term.ps_banner": "duAI SAFE SESSION: {tool}",
-        "term.ps_warning": "Everything will be deleted when this window is closed.",
-        "term.active": "ACTIVE: {tool}",
-        "term.start_error": "Could not start: {exc}",
-        # CONSOLE
-        "cli.help_title": "AVAILABLE COMMANDS",
-        "cli.last_scan": "LAST SCAN       : {time} . {count} with traces . {bytes}",
-        "cli.last_scan_none": "LAST SCAN       : none yet (use SCAN)",
-        "cli.dest_mode": "DESTINATION MODE: {mode}",
-        "cli.auto_status": "AUTO-CLEAN      : exit={val} . interval={min} min . hotkey={val2} . stealth={val3}",
-        "cli.excluded": "EXCLUDED        : {count}",
-        "cli.quarantine": "QUARANTINE      : {count} items . PASSWORD: {pwd}",
-        "cli.session_state": "PROTECTED SESSION: {state}",
-        "cli.session_active": "ACTIVE",
-        "cli.session_inactive": "inactive",
-        "cli.freed": "FREED THIS SESSION: {bytes}",
-        "cli.targets_count": "{count} targets",
-        "cli.no_chrome": "Chrome, Edge or Brave not found.",
-        "cli.no_browsers": "No Chromium browsers detected running.",
-        "cli.no_ai_tabs": "No AI tabs open.",
-        "cli.ai_tabs": "{count} AI tabs",
-        "cli.tabs_closed": "Tabs closed: {count}",
-        "cli.tabs_confirm": "Add --confirm to close AI tabs.",
-        "cli.scan_started": "Scan started. Results in the SCAN tab.",
-        "cli.clean_usage": "USE: clean all|apps|browser|system|<id>... [--mode=X] [--confirm]",
-        "cli.unknown_ids": "Unknown IDs ignored: ",
-        "cli.nothing_to_clean": "Nothing to clean with that selection.",
-        "cli.clean_real": "REAL CLEAN",
-        "cli.clean_preview": "PREVIEW",
-        "cli.clean_launched": "{verb} launched on {count} targets (destination: {mode}).",
-        "cli.panic_running": "PANIC MODE IN PROGRESS. Details in the PANIC tab.",
-        "cli.panic_busy": "[busy] a panic is already in progress.",
-        "cli.session_usage": "USE: session chatgpt|claude|gemini|perplexity|copilot|poe|deepseek",
-        "cli.no_apps": "No AI applications registered in the system.",
-        "cli.uninstall_hint": "-- use UNINSTALL <index or name> [--confirm]",
-        "cli.uninstall_usage": "USE: uninstall <index or name> [--confirm]",
-        "cli.app_not_found": "APP NOT FOUND. Use APPS to list.",
-        "cli.app_no_uninstall": "This app does not expose a useful uninstall command.",
-        "cli.simulation": "[SIMULATION] would execute:",
-        "cli.uninstall_confirm_hint": "Add --confirm to actually uninstall (and clean traces after).",
-        "cli.uninstalled": "[OK] {name} uninstalled ({detail}).",
-        "cli.traces_after": "traces after: {count} items, {bytes} freed",
-        "cli.uninstall_fail": "[FAIL] {name}: {detail}",
-        "cli.uninstalling": "UNINSTALLING...",
-        "cli.dest_usage": "USE: destination recycle|quarantine|permanent",
-        "cli.dest_invalid": "INVALID DESTINATION. Options: recycle, quarantine, permanent",
-        "cli.dest_set": "Destination mode: {value}",
-        "cli.exclude_usage": "USE: exclude <id>",
-        "cli.exclude_unknown": "Unknown ID: {id}",
-        "cli.excluded_list": "Excluded (never cleaned): ",
-        "cli.allow_usage": "USE: allow <id>",
-        "cli.allow_restored": "Restored to cleanable: ",
-        "cli.no_exclusions": "No exclusions.",
-        "cli.autoexit_usage": "USE: autoexit yes|no",
-        "cli.autoexit_set": "Auto-clean on exit: {val}",
-        "cli.interval_usage": "USE: interval <minutes 0-1440>",
-        "cli.interval_invalid": "INVALID MINUTES",
-        "cli.interval_set": "Periodic auto-clean every {minutes} minutes.",
-        "cli.interval_off": "Periodic auto-clean disabled.",
-        "cli.hotkey_usage": "USE: hotkey yes|no",
-        "cli.hotkey_set": "Global hotkey CTRL+ALT+D: {val}",
-        "cli.stealth_usage": "USE: stealth yes|no",
-        "cli.stealth_set": "Stealth mode: {val}",
-        "cli.theme_usage": "USE: theme dark",
-        "cli.widget_usage": "USE: widget yes|no",
-        "cli.widget_on": "Floating button enabled.",
-        "cli.widget_off": "Floating button disabled.",
-        "cli.pwd_usage": "USE: password <key (min 4)>",
-        "cli.pwd_min": "Use at least 4 characters.",
-        "cli.pwd_set": "Password set. It will be required when opening duAI.",
-        "cli.pwd_removed": "Password removed.",
-        "cli.hosts_usage": "USE: hosts yes|no",
-        "cli.hosts_set": "Telemetry blocking in hosts: {val}",
-        "cli.hosts_admin_error": "[ERROR] no admin permissions to modify the hosts file.",
-        "cli.task_usage": "USE: task create|remove",
-        "cli.task_created": "Login task created.",
-        "cli.task_create_fail": "Could not create task.",
-        "cli.task_deleted": "Task deleted.",
-        "cli.task_delete_fail": "Could not delete (may not exist).",
-        "cli.task_invalid": "INVALID ACTION. Use create or remove.",
-        "cli.quarantine_usage": "USE: quarantine view|restore|empty",
-        "cli.quarantine_empty": "Quarantine empty.",
-        "cli.quarantine_lost": "[LOST]",
-        "cli.quarantine_restored": "{count} items restored.",
-        "cli.quarantine_emptied": "Quarantine emptied ({count} permanently deleted).",
-        "cli.quarantine_invalid": "INVALID ACTION. Use view, restore or empty.",
-        "cli.no_scan": "No scan yet. Run SCAN first.",
-        "cli.export_invalid": "INVALID FORMAT. Use txt or csv.",
-        "cli.export_saved": "Report saved: {path}",
-        "cli.export_error": "[ERROR] could not save: {exc}",
-        "cli.purge_done": "Log purged ({dir}) and {count} recent entries deleted.",
-        "cli.placeholder": "command...  (HELP to see all)",
-        "cli.timeout": "[TIMEOUT] command took more than 30 seconds",
-        "cli.code": "[code {code}]",
-        "cli.no_items": "none",
-        "cli.silent": "silent",
-        "cli.assisted": "assisted",
-        "cli.excluded_label": "EXCLUDED",
-        # CONSOLE HELP
-        "cli.help/ayuda": "Shows this help.",
-        "cli.help/escanear": "Scans all active targets.",
-        "cli.help/limpiar": "Cleans selected targets. Use --confirm to execute.",
-        "cli.help/panico": "Silent total wipe.",
-        "cli.help/estado": "Shows current duAI status.",
-        "cli.help/salir": "Closes the console.",
-        "cli.help/limpiarpantalla": "Clears the console screen.",
-        "cli.help/sesion": "Opens a protected browser session.",
-        "cli.help/cerrarsesion": "Closes the protected session.",
-        "cli.help/terminal": "Opens the terminal tab.",
-        "cli.help/pestanas": "Shows open AI tabs.",
-        "cli.help/cerrarpestanas": "Closes AI tabs in the browser.",
-        "cli.help/applications": "Lists AI apps detected in the system.",
-        "cli.help/desinstalar": "Uninstalls a selected AI app.",
-        "cli.help/destino": "Changes destination mode (recycle, quarantine, permanent).",
-        "cli.help/excluir": "Excludes a target from scanning.",
-        "cli.help/permitir": "Removes a target from the exclusion list.",
-        "cli.help/autoexit": "Enables/disables auto-clean on exit.",
-        "cli.help/intervalo": "Configures periodic auto-clean interval.",
-        "cli.help/hotkey": "Enables/disables global hotkey CTRL+ALT+D.",
-        "cli.help/sigilo": "Enables/disables stealth mode.",
-        "cli.help/tema": "Changes visual theme (dark only).",
-        "cli.help/widget": "Enables/disables floating button.",
-        "cli.help/contrasena": "Sets or removes access password.",
-        "cli.help/hosts": "Enables/disables telemetry blocking in hosts.",
-        "cli.help/tarea": "Creates or removes login task.",
-        "cli/help/cuarentena": "Manages quarantine (view, restore, empty).",
-        "cli.help/exportar": "Exports last scan to TXT or CSV.",
-        "cli.help/purgar": "Purges duAI log and recent entries.",
-        "cli.purge_done": "Log purged ({dir}) and {count} recent entries deleted.",
-        "cli.help_line.escanear": "SCAN [filter]         detects traces and opens the SCAN tab (filter: apps, browser, system, id)",
-        "cli.help_line.lista": "LIST [filter]         catalog targets with their ids",
-        "cli.help_line.estado": "STATUS                current duAI summary",
-        "cli.help_line.limpiar": "CLEAN <sel>           sel: all | apps | browser | system | <id>...",
-        "cli.help_line.limpiar_opts": "                       --mode=recycle|quarantine|permanent   --confirm (without: preview)",
-        "cli.help_line.panico": "PANIC                 silent total wipe",
-        "cli.help_line.sesion": "SESSION <site>        chatgpt claude gemini perplexity copilot poe deepseek (temp profile)",
-        "cli.help_line.cerrarsesion": "CLOSESESSION          destroys the active protected session",
-        "cli.help_line.cerrarpestanas": "CLOSETABS             closes AI tabs in Chromium browsers (--confirm)",
-        "cli.help_line.terminal": "TERMINAL [command]    opens the integrated terminal or runs a command",
-        "cli.help_line.apps": "APPS                  lists AI apps installed on the system",
-        "cli.help_line.desinstalar": "UNINSTALL <app>       --confirm to execute; without it just shows the command",
-        "cli.help_line.exportar": "EXPORT txt|csv        saves the last scan to the desktop",
-        "cli.help_line.config1": "DESTINATION <mode> · EXCLUDE <id> · ALLOW <id> · EXCLUDED",
-        "cli.help_line.config2": "AUTOEXIT yes|no · INTERVAL <min> · HOTKEY yes|no · STEALTH yes|no · THEME dark · WIDGET yes|no",
-        "cli.help_line.config3": "PASSWORD <key> · NOPASSWORD · HOSTS yes|no · TASK create|remove",
-        "cli.help_line.config4": "QUARANTINE view|restore|empty · BROWSERS · PURGELOGS · CLEARSCREEN · EXIT",
-        # PANIC FLOAT
-        "float.open": "OPEN duAI",
-        "float.hide": "HIDE WIDGET",
-        "float.quit": "QUIT duAI",
-        # LANGUAGE
-        "lang.section": "Language",
-        "lang.current": "EN",
-        # UPDATER
-        "updater.title": "Updates",
-        "updater.check": "CHECK FOR UPDATES",
-        "updater.up_to_date": "duAI is up to date (version {version}).",
-        "updater.available": "A new version is available: {version}",
-        "updater.download": "DOWNLOAD UPDATE",
-        "updater.download_done": "Update downloaded: {path}",
-        "updater.error": "Could not check for updates: {error}",
-        "updater.check_on_startup": "Check for updates on startup",
-        # VIRAL / GAMIFICATION
-        "viral.title": "Achievements & Share",
-        "viral.achievements": "UNLOCKED ACHIEVEMENTS",
-        "viral.no_achievements": "No achievements unlocked yet.",
-        "viral.new_achievement": "NEW ACHIEVEMENT: {name}",
-        "viral.share": "SHARE ON SOCIAL MEDIA",
-        "viral.copy_report": "COPY REPORT TO CLIPBOARD",
-        "viral.report_title": "duAI privacy report",
-        "viral.stats": "USAGE STATISTICS",
-        "viral.scans": "Scans performed",
-        "viral.cleans": "Cleans performed",
-        "viral.panics": "Panic mode used",
-        "viral.freed": "Total space freed",
-        "viral.streak": "Active days streak",
-        "viral.accent": "Accent color (optional)",
-        "viral.accent_none": "None (monochrome)",
-        "viral.accent_red": "Neon red",
-        "viral.accent_green": "Neon green",
-        "viral.accent_blue": "Neon blue",
-        "viral.accent_purple": "Neon purple",
-        # INSTALADOR / PORTABLE
-        "setup.portable_mode": "PORTABLE MODE (no installer)",
-        "setup.installer_mode": "INSTALLER MODE (shortcuts & uninstaller)",
-        "setup.admin_required": "Administrator privileges required for some features.",
-        "setup.run_as_admin": "RUN AS ADMINISTRATOR",
-    },
-}
+
+class I18nManager:
+    """Gestiona traducciones con soporte para:
+    - Archivos JSON externos
+    - Namespaces anidados (nav.resumen, app.title)
+    - Pluralización por idioma
+    - Cadena de fallback (es-MX → es → en)
+    - Contexto/desambiguación
+    - Carga dinámica de idiomas
+    """
+
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+                cls._instance._initialized = False
+            return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+        self._translations: Dict[str, Dict] = {}
+        self._plural_rules: Dict[str, callable] = {}
+        self._current_lang: str = "es"
+        self._fallback_chain: Dict[str, List[str]] = {}
+        self._load_all_translations()
+        self._initialized = True
+
+    def _get_translations_dir(self) -> Path:
+        """Obtiene directorio de traducciones (soporta frozen/ejecutable)."""
+        import sys as _sys
+
+        if getattr(_sys, "frozen", False):
+            base = Path(_sys._MEIPASS) / "duai" / "i18n"
+        else:
+            # duai/i18n.py -> duai/i18n/translations
+            base = Path(__file__).parent / "i18n" / "translations"
+        return base
+
+    def _load_all_translations(self):
+        """Carga todos los .json del directorio translations."""
+        trans_dir = self._get_translations_dir()
+        if not trans_dir.exists():
+            self._load_embedded_fallback()
+            return
+
+        for json_file in trans_dir.glob("*.json"):
+            lang_code = json_file.stem
+            try:
+                with open(json_file, "r", encoding="utf-8") as f:
+                    self._translations[lang_code] = json.load(f)
+                # Construir cadena fallback: es-MX → es → en
+                base_lang = lang_code.split("-")[0]
+                self._fallback_chain[lang_code] = [lang_code, base_lang, "en"] if base_lang != "en" else [lang_code, "en"]
+            except (json.JSONDecodeError, OSError) as e:
+                print(f"[i18n] Error cargando {json_file}: {e}")
+
+        # Asegurar inglés como fallback final
+        if "en" not in self._translations:
+            self._load_embedded_fallback()
+
+        self._register_plural_rules()
+
+    def _load_embedded_fallback(self):
+        """Carga traducciones mínimas embebidas como último recurso."""
+        self._translations["es"] = self._get_embedded_es()
+        self._translations["en"] = self._get_embedded_en()
+        self._fallback_chain["es"] = ["es", "en"]
+        self._fallback_chain["en"] = ["en"]
+
+    def _register_plural_rules(self):
+        """Registra funciones de pluralización por idioma (reglas CLDR)."""
+        self._plural_rules["es"] = lambda n: "plural" if n != 1 else "singular"
+        self._plural_rules["en"] = lambda n: "plural" if n != 1 else "singular"
+        self._plural_rules["fr"] = lambda n: "plural" if n > 1 else "singular"
+        self._plural_rules["pl"] = lambda n: (
+            "plural" if n == 1 else
+            "few" if 2 <= (n % 10) <= 4 and (n % 100 < 10 or n % 100 >= 20) else
+            "many"
+        )
+        self._plural_rules["default"] = lambda n: "plural" if n != 1 else "singular"
+
+    def _get_embedded_es(self) -> Dict:
+        return {
+            "nav": {"resumen": "RESUMEN", "escaneo": "ESCANEO", "limpieza": "LIMPIEZA", "sesion": "SESIÓN", "panico": "PÁNICO", "ajustes": "AJUSTES", "terminal": "TERMINAL", "logros": "LOGROS", "actualizaciones": "ACTUALIZACIONES"},
+            "app": {"title": "duAI", "theme_dark": "MODO OSCURO", "theme_light": "MODO CLARO"},
+            "dash": {"status": "ESTADO", "hero": "Privacidad absoluta.", "traces": "RASTROS", "risk": "RIESGO", "freed": "LIBERADO", "last_scan": "ÚLT. ESCANEO", "never": "Nunca", "btn_scan": "ESCANEAR", "btn_clean": "LIMPIAR", "btn_quick": "LIMPIEZA RÁPIDA"},
+            "scan": {"title": "ESCANEO DE PRIVACIDAD", "start": "INICIAR ESCANEO", "cancel": "CANCELAR", "done": "{found} rastros, {bytes} en {elapsed}s ({time})", "progress": "Escaneando {name}...", "empty": "Sin rastros de IA detectados.", "col_target": "Objetivo", "col_category": "Categoría", "col_status": "Estado", "col_items": "Items", "col_size": "Tamaño"},
+            "clean": {"title": "LIMPIEZA SEGURA", "preview": "Vista previa", "recycle": "Papelera", "permanent": "Permanente", "quarantine": "Cuarentena", "run": "EJECUTAR LIMPIEZA", "select_all": "Seleccionar todo", "deselect_all": "Deseleccionar todo", "no_targets": "Sin objetivos seleccionados"},
+            "panic": {"title": "MODO PÁNICO", "btn": "ACTIVAR PÁNICO", "confirm": "Esto eliminará TODOS los rastros. ¿Confirmar?", "running": "Ejecutando modo pánico...", "done": "Pánico completado.", "error": "Error en modo pánico: "},
+            "settings": {"title": "CONFIGURACIÓN", "general": "GENERAL", "cleanup": "LIMPIEZA", "security": "SEGURIDAD", "appearance": "APARIENCIA", "gamification": "GAMIFICACIÓN", "language": "Idioma", "theme": "Tema", "accent": "Color de acento", "high_contrast": "Alto contraste", "follow_system": "Seguir tema del sistema", "exclusions": "Exclusiones", "password": "Contraseña", "hotkey": "Hotkey global", "updates": "Actualizaciones", "gamification_toggle": "Habilitar logros", "share_platform": "Plataforma compartir"},
+            "session": {"title": "SESIÓN AISLADA", "new": "Nueva sesión", "running": "Ejecutando...", "stop": "Detener", "output": "Salida"},
+            "terminal": {"title": "TERMINAL AISLADA", "prompt": "duAI>", "clear": "Limpiar", "copy": "Copiar"},
+            "viral": {"title": "LOGROS Y SOCIAL", "stats": "ESTADÍSTICAS", "scans": "Escaneos", "cleans": "Limpiezas", "panics": "Pánicos", "freed": "Liberado", "streak": "RACHA", "achievements": "LOGROS DESBLOQUEADOS", "locked": "BLOQUEADOS", "share": "COMPARTIR", "copy_report": "COPIAR REPORTE", "save_png": "GUARDAR REPORTE PNG"},
+            "updater": {"title": "ACTUALIZACIONES", "check": "VERIFICAR", "latest": "Última versión: {version}", "current": "Versión actual: {version}", "available": "¡Disponible: {version}!", "downloading": "Descargando...", "install": "INSTALAR", "notes": "Notas de la versión:"},
+            "plural": {
+                "items_found": {"singular": "{count} elemento encontrado", "plural": "{count} elementos encontrados"},
+                "bytes_freed": {"singular": "{count} byte liberado", "plural": "{count} bytes liberados"},
+                "days_streak": {"singular": "{count} día limpio", "plural": "{count} días limpios"},
+            },
+        }
+
+    def _get_embedded_en(self) -> Dict:
+        return {
+            "nav": {"resumen": "DASHBOARD", "escaneo": "SCAN", "limpieza": "CLEAN", "sesion": "SESSION", "panico": "PANIC", "ajustes": "SETTINGS", "terminal": "TERMINAL", "logros": "ACHIEVEMENTS", "actualizaciones": "UPDATES"},
+            "app": {"title": "duAI", "theme_dark": "DARK MODE", "theme_light": "LIGHT MODE"},
+            "dash": {"status": "STATUS", "hero": "Absolute privacy.", "traces": "TRACES", "risk": "RISK", "freed": "FREED", "last_scan": "LAST SCAN", "never": "Never", "btn_scan": "SCAN", "btn_clean": "CLEAN", "btn_quick": "QUICK CLEAN"},
+            "scan": {"title": "PRIVACY SCAN", "start": "START SCAN", "cancel": "CANCEL", "done": "{found} traces, {bytes} in {elapsed}s ({time})", "progress": "Scanning {name}...", "empty": "No AI traces detected.", "col_target": "Target", "col_category": "Category", "col_status": "Status", "col_items": "Items", "col_size": "Size"},
+            "clean": {"title": "SAFE CLEANUP", "preview": "Preview", "recycle": "Recycle", "permanent": "Permanent", "quarantine": "Quarantine", "run": "RUN CLEANUP", "select_all": "Select All", "deselect_all": "Deselect All", "no_targets": "No targets selected"},
+            "panic": {"title": "PANIC MODE", "btn": "ACTIVATE PANIC", "confirm": "This will delete ALL traces. Confirm?", "running": "Running panic mode...", "done": "Panic completed.", "error": "Panic mode error: "},
+            "settings": {"title": "SETTINGS", "general": "GENERAL", "cleanup": "CLEANUP", "security": "SECURITY", "appearance": "APPEARANCE", "gamification": "GAMIFICATION", "language": "Language", "theme": "Theme", "accent": "Accent Color", "high_contrast": "High Contrast", "follow_system": "Follow System Theme", "exclusions": "Exclusions", "password": "Password", "hotkey": "Global Hotkey", "updates": "Updates", "gamification_toggle": "Enable Achievements", "share_platform": "Share Platform"},
+            "session": {"title": "ISOLATED SESSION", "new": "New Session", "running": "Running...", "stop": "Stop", "output": "Output"},
+            "terminal": {"title": "ISOLATED TERMINAL", "prompt": "duAI>", "clear": "Clear", "copy": "Copy"},
+            "viral": {"title": "ACHIEVEMENTS & SOCIAL", "stats": "STATISTICS", "scans": "Scans", "cleans": "Cleans", "panics": "Panics", "freed": "Freed", "streak": "STREAK", "achievements": "UNLOCKED", "locked": "LOCKED", "share": "SHARE", "copy_report": "COPY REPORT", "save_png": "SAVE PNG REPORT"},
+            "updater": {"title": "UPDATES", "check": "CHECK", "latest": "Latest version: {version}", "current": "Current version: {version}", "available": "Available: {version}!", "downloading": "Downloading...", "install": "INSTALL", "notes": "Release notes:"},
+            "plural": {
+                "items_found": {"singular": "{count} item found", "plural": "{count} items found"},
+                "bytes_freed": {"singular": "{count} byte freed", "plural": "{count} bytes freed"},
+                "days_streak": {"singular": "{count} day clean", "plural": "{count} days clean"},
+            },
+        }
+
+    def set_language(self, lang: str) -> bool:
+        """Establece idioma activo. Returns True si disponible."""
+        lang = lang.lower()
+        if lang in self._translations:
+            self._current_lang = lang
+            get_settings().set("language", lang)
+            return True
+        base = lang.split("-")[0]
+        if base in self._translations:
+            self._current_lang = base
+            get_settings().set("language", base)
+            return True
+        return False
+
+    def get_language(self) -> str:
+        return self._current_lang
+
+    def get_available_languages(self) -> List[Dict[str, str]]:
+        native_names = {
+            "es": "Español", "en": "English", "fr": "Français",
+            "de": "Deutsch", "pt": "Português", "it": "Italiano",
+            "ja": "日本語", "ko": "한국어", "zh": "中文", "ru": "Русский",
+            "pl": "Polski", "nl": "Nederlands", "tr": "Türkçe",
+        }
+        return [
+            {"code": code, "name": native_names.get(code, code.upper())}
+            for code in sorted(self._translations.keys())
+        ]
+
+    def _resolve_key(self, lang: str, key: str) -> Optional[Union[str, dict]]:
+        """Resuelve clave anidada (ej: 'nav.resumen') en diccionario idioma.
+
+        Soporta dos formatos:
+        - Anidado real: {"nav": {"resumen": "..."}}
+        - Plana con punto: {"updater": {"step.download": "..."}}
+        Tambien devuelve hojas tipo dict (para pluralizacion en tp()).
+        """
+        table = self._translations.get(lang, {})
+        parts = key.split(".")
+        for i, part in enumerate(parts):
+            if not isinstance(table, dict):
+                return None
+            # Clave plana con punto (p. ej. "step.download") en este nivel
+            remainder = ".".join(parts[i:])
+            if remainder in table:
+                return table[remainder]
+            if part in table:
+                table = table[part]
+            else:
+                return None
+        return table if isinstance(table, (str, dict)) else None
+
+    def t(self, key: str, **kwargs) -> str:
+        """Traduce clave con interpolación. Soporta namespaces: 'nav.resumen'."""
+        for lang in self._fallback_chain.get(self._current_lang, [self._current_lang, "en"]):
+            text = self._resolve_key(lang, key)
+            if isinstance(text, str):
+                try:
+                    return text.format(**kwargs) if kwargs else text
+                except (KeyError, IndexError, ValueError):
+                    # Placeholder no provisto: devolver el texto sin formatear
+                    # en vez de romper la UI.
+                    return text
+        return key.format(**kwargs) if kwargs else key
+
+    def tp(self, key: str, count: int, **kwargs) -> str:
+        """Traduce con pluralización. Clave debe tener variantes 'singular'/'plural'."""
+        kwargs["count"] = count
+        rule = self._plural_rules.get(self._current_lang, self._plural_rules["default"])
+        form = rule(count)
+
+        for lang in self._fallback_chain.get(self._current_lang, [self._current_lang, "en"]):
+            table = self._translations.get(lang, {})
+            plural_table = self._resolve_key(lang, key)
+            if isinstance(plural_table, dict):
+                text = plural_table.get(form) or plural_table.get("plural") or plural_table.get("singular")
+                if text:
+                    return text.format(**kwargs) if kwargs else text
+
+        return self.t(key, **kwargs)
+
+    def tc(self, context: str, key: str, **kwargs) -> str:
+        """Traduce con contexto/desambiguación: tc('button', 'save') → 'button.save'."""
+        return self.t(f"{context}.{key}", **kwargs)
+
+    def reload(self):
+        """Recarga todas las traducciones desde disco."""
+        self._translations.clear()
+        self._fallback_chain.clear()
+        self._load_all_translations()
 
 
-def t(key, **kwargs):
-    """Translate a key to the current language. Supports {name} interpolation."""
-    lang = get_settings().get("language") or "es"
-    table = _TRANSLATIONS.get(lang, _TRANSLATIONS["es"])
-    text = table.get(key)
-    if text is None:
-        text = _TRANSLATIONS["es"].get(key, key)
-    if kwargs:
-        text = text.format(**kwargs)
-    return text
+# Backward compatibility
+_manager = I18nManager()
 
 
-def set_language(lang):
-    """Set the active language."""
-    if lang in ("es", "en"):
-        get_settings().set("language", lang)
+def t(key: str, **kwargs) -> str:
+    """Traduce clave al idioma actual. Soporta interpolación {name}."""
+    return _manager.t(key, **kwargs)
 
 
-def get_language():
-    """Get the active language code."""
-    return get_settings().get("language") or "es"
+def tp(key: str, count: int, **kwargs) -> str:
+    """Traduce con soporte de pluralización."""
+    return _manager.tp(key, count, **kwargs)
+
+
+def tc(context: str, key: str, **kwargs) -> str:
+    """Traduce con contexto para desambiguación."""
+    return _manager.tc(context, key, **kwargs)
+
+
+def set_language(lang: str) -> bool:
+    """Establece idioma activo. Returns True si exitoso."""
+    return _manager.set_language(lang)
+
+
+def get_language() -> str:
+    """Obtiene código de idioma activo."""
+    return _manager.get_language()
+
+
+def get_available_languages() -> List[Dict[str, str]]:
+    """Obtiene lista de idiomas disponibles con nombres nativos."""
+    return _manager.get_available_languages()
+
+
+def reload_translations():
+    """Recarga traducciones desde disco (desarrollo)."""
+    _manager.reload()
+
+
+def detect_system_language() -> str:
+    """Detecta idioma del sistema para configuración inicial."""
+    import locale
+    try:
+        lang, _ = locale.getdefaultlocale()
+        if lang:
+            lang = lang.lower()
+            mapping = {
+                "es_es": "es", "es_mx": "es", "es_ar": "es",
+                "en_us": "en", "en_gb": "en", "en_ca": "en",
+                "fr_fr": "fr", "fr_ca": "fr",
+                "de_de": "de", "de_at": "de", "de_ch": "de",
+                "pt_br": "pt", "pt_pt": "pt",
+                "it_it": "it", "ja_jp": "ja", "ko_kr": "ko",
+                "zh_cn": "zh", "zh_tw": "zh", "ru_ru": "ru",
+                "pl_pl": "pl", "nl_nl": "nl", "tr_tr": "tr",
+            }
+            return mapping.get(lang, lang.split("_")[0])
+    except Exception:
+        pass
+    return "en"

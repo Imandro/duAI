@@ -42,7 +42,7 @@ QMainWindow, QDialog {
     line-height: 160%;
 }
 
-#statCard {
+#statCard, #scoreFrame {
     background: __ALT__;
     border: 1px solid __LINE__;
     border-radius: 8px;

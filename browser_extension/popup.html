@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>duAI Browser Extension</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000000;
+      color: #FFFFFF;
+      width: 340px;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #FFFFFF;
+    }
+    .stats-card {
+      background: #1A1A1A;
+      border: 1px solid #333333;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #333333;
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-label { color: #AAAAAA; font-size: 13px; }
+    .stat-value { color: #FFFFFF; font-weight: 600; }
+    .stat-value.ai { color: #EF4444; }
+    .stat-value.ok { color: #10B981; }
+    .btn-group { display: flex; gap: 8px; margin-bottom: 12px; }
+    button {
+      flex: 1;
+      padding: 10px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #FFD700;
+      color: #000000;
+    }
+    .btn-primary:hover { background: #FFED4A; }
+    .btn-danger {
+      background: #EF4444;
+      color: #FFFFFF;
+    }
+    .btn-danger:hover { background: #F87171; }
+    .btn-secondary {
+      background: #333333;
+      color: #FFFFFF;
+    }
+    .btn-secondary:hover { background: #444444; }
+    .domain-list {
+      background: #1A1A1A;
+      border: 1px solid #333333;
+      border-radius: 12px;
+      padding: 12px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .domain-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 12px;
+      border-bottom: 1px solid #333333;
+    }
+    .domain-item:last-child { border-bottom: none; }
+    .domain-name { color: #CCCCCC; }
+    .domain-count { color: #FFD700; font-weight: 600; }
+    .empty-state {
+      text-align: center;
+      color: #888888;
+      padding: 20px;
+      font-size: 13px;
+    }
+    .footer {
+      margin-top: 16px;
+      font-size: 11px;
+      color: #666666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>duAI</h1>
+
+  <div class="stats-card">
+    <div class="stat-row">
+      <span class="stat-label">Rastros de IA detectados</span>
+      <span class="stat-value ai" id="totalTraces">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Sesión actual</span>
+      <span class="stat-value" id="sessionTraces">0</span>
+    </div>
+    <div class="stat-row">
+      <span class="stat-label">Última visita</span>
+      <span class="stat-value" id="lastVisit">—</span>
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button class="btn-danger" id="btnClear">Limpiar todo</button>
+    <button class="btn-secondary" id="btnOpen">Abrir duAI</button>
+  </div>
+
+  <div class="domain-list">
+    <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #AAAAAA; margin-bottom: 8px;">Por dominio</div>
+    <div id="domainList" class="empty-state">Sin datos aún</div>
+  </div>
+
+  <div class="footer">
+    duAI v2.0.0 — 100% local, sin telemetría<br>
+    <a href="#" style="color: #FFD700; text-decoration: none;">Ver opciones</a>
+  </div>
+
+  <script>
+    const totalEl = document.getElementById("totalTraces");
+    const sessionEl = document.getElementById("sessionTraces");
+    const lastVisitEl = document.getElementById("lastVisit");
+    const domainListEl = document.getElementById("domainList");
+
+    function loadStats() {
+      chrome.runtime.sendMessage({ action: "getStats" }, (response) => {
+        if (response && response.stats) {
+          const stats = response.stats;
+          totalEl.textContent = stats.total || 0;
+          sessionEl.textContent = stats.sessionVisits ? stats.sessionVisits.length : 0;
+          lastVisitEl.textContent = stats.lastVisit ? new Date(stats.lastVisit).toLocaleString() : "—";
+
+          // Render domain list
+          if (stats.byDomain && Object.keys(stats.byDomain).length > 0) {
+            domainListEl.innerHTML = "";
+            Object.entries(stats.byDomain)
+              .sort((a, b) => b[1] - a[1])
+              .forEach(([domain, count]) => {
+                const div = document.createElement("div");
+                div.className = "domain-item";
+                div.innerHTML = `<span class="domain-name">${domain}</span><span class="domain-count">${count}</span>`;
+                domainListEl.appendChild(div);
+              });
+          } else {
+            domainListEl.innerHTML = '<div class="empty-state">Sin datos aún</div>';
+          }
+        }
+      });
+    }
+
+    document.getElementById("btnClear").addEventListener("click", () => {
+      if (confirm("¿Eliminar todas las estadísticas de rastreo?")) {
+        chrome.runtime.sendMessage({ action: "clearStats" }, () => {
+          loadStats();
+        });
+      }
+    });
+
+    document.getElementById("btnOpen").addEventListener("click", () => {
+      chrome.tabs.create({ url: "https://github.com/Imandro/duAI" });
+    });
+
+    // Load on open
+    loadStats();
+
+    // Refresh periodically
+    setInterval(loadStats, 5000);
+  </script>
+</body>
+</html>
