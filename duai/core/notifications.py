@@ -93,7 +93,7 @@ def notify_new_achievement(name):
     """Notificacion cuando se desbloquea un logro."""
     notify(
         "duAI — Nuevo logro desbloqueado",
-        f"🏆 {name}",
+        f"LOGRO: {name}",
     )
 
 

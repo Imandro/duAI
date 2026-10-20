@@ -113,15 +113,15 @@ def get_streak_message():
 
 
 def get_streak_emoji():
-    """Devuelve un emoji representativo de la racha."""
+    """Devuelve texto representativo de la racha (sin emojis)."""
     data = _load()
     current = data.get("current", 0)
     if current == 0:
-        return "💀"
+        return "SIN RACHA"
     if current < 7:
-        return "🌱"
+        return "INICIO"
     if current < 30:
-        return "🔥"
+        return "ACTIVA"
     if current < 90:
-        return "⚡"
-    return "👑"
+        return "FUERTE"
+    return "LEGENDARIA"
