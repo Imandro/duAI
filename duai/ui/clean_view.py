@@ -215,6 +215,12 @@ class CleanView(QWidget):
                 get_stats().record_clean(result.removed_items, result.freed_bytes)
             except Exception:
                 pass
+            # Notificacion de limpieza completada
+            try:
+                from ..core.notifications import notify_clean_complete
+                notify_clean_complete(result.removed_items, result.freed_bytes)
+            except Exception:
+                pass
         self.log_view.append("")
 
     def _failed(self, message):

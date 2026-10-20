@@ -67,6 +67,8 @@ class ViralView(QWidget):
         self.stat_cleans = self._stat_row(stats_layout, t("viral.cleans"), str(self.stats.get("cleans", 0)))
         self.stat_panics = self._stat_row(stats_layout, t("viral.panics"), str(self.stats.get("panics", 0)))
         self.stat_freed = self._stat_row(stats_layout, t("viral.freed"), "0 B")
+        self.stat_score = self._stat_row(stats_layout, "PRIVACY SCORE", "—")
+        self.stat_streak = self._stat_row(stats_layout, "RACHA", "0 dias")
         self.stat_streak = self._stat_row(stats_layout, t("viral.streak"), str(self.stats.get("streak_days", 0)))
         outer.addWidget(stats_box)
 
@@ -77,8 +79,11 @@ class ViralView(QWidget):
         self.share_btn.clicked.connect(self._share)
         copy_btn = QPushButton(t("viral.copy_report"))
         copy_btn.clicked.connect(self._copy_report)
+        report_img_btn = QPushButton("GUARDAR REPORTE PNG")
+        report_img_btn.clicked.connect(self._save_report_image)
         share_row.addWidget(self.share_btn)
         share_row.addWidget(copy_btn)
+        share_row.addWidget(report_img_btn)
         share_row.addStretch(1)
         outer.addLayout(share_row)
 
@@ -141,6 +146,17 @@ class ViralView(QWidget):
         from ..utils.paths import fmt_bytes
         count_to(self.stat_freed, self.stats.get("total_freed_bytes", 0), formatter=fmt_bytes)
         count_to(self.stat_streak, self.stats.get("streak_days", 0), formatter=str)
+        # Actualizar Privacy Score y racha
+        try:
+            from ..core.privacy_score import get_latest_score
+            from ..core.streak import get_streak
+            latest = get_latest_score()
+            if latest:
+                self.stat_score.setText(str(latest["score"]))
+            streak = get_streak()
+            self.stat_streak.setText(f"{streak.get('current', 0)} dias")
+        except Exception:
+            pass
 
     def _share(self):
         platform = get_settings().get("share_platform") or "twitter"
@@ -154,3 +170,23 @@ class ViralView(QWidget):
             self.mw.cli_output("Reporte copiado al portapapeles.")
         else:
             self.mw.cli_output("No se pudo copiar al portapapeles.")
+
+    def _save_report_image(self):
+        from ..core.privacy_score import get_latest_score
+        from ..core.streak import get_streak
+        from ..core.report_image import generate_and_open
+        from ..core.viral import get_stats
+
+        latest = get_latest_score()
+        score = latest["score"] if latest else 50
+        stats = get_stats()
+        streak = get_streak()
+
+        path = generate_and_open(
+            score=score,
+            found_count=stats.get("total_found", 0),
+            freed_bytes=stats.get("total_freed_bytes", 0),
+            streak_days=streak.get("current", 0),
+            achievements_unlocked=len(stats.unlocked_achievements()),
+        )
+        self.mw.cli_output(f"Reporte guardado en: {path}")

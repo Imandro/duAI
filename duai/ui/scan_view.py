@@ -202,6 +202,18 @@ class ScanView(QWidget):
             get_stats().record_scan(found, report.total_bytes)
         except Exception:
             pass
+        # Actualizar racha de privacidad
+        try:
+            from ..core.streak import update_streak
+            update_streak(found)
+        except Exception:
+            pass
+        # Notificacion de escaneo completado
+        try:
+            from ..core.notifications import notify_scan_complete
+            notify_scan_complete(found, report.total_bytes)
+        except Exception:
+            pass
 
     def _scan_failed(self, message):
         self._scan_btn_reset()

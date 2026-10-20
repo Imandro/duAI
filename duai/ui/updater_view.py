@@ -114,6 +114,11 @@ class UpdaterView(QWidget):
                 return
             if result.available:
                 self.status.setText(t("updater.available", version=result.latest_version))
+                try:
+                    from ..core.notifications import notify_update_available
+                    notify_update_available(result.latest_version)
+                except Exception:
+                    pass
                 self.notes.setPlainText(result.release_notes or "(sin notas de version)")
                 self._download_url = result.download_url
                 self.download_btn.setEnabled(bool(result.download_url))
