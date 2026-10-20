@@ -27,7 +27,7 @@ class SessionView(QWidget):
         layout.addWidget(micro)
 
         title = QLabel(t("session.subtitle"))
-        title.setStyleSheet("font-size: 22px; font-weight: 300;")
+        title.setStyleSheet("font-size: 22px; font-weight: 300; color: #FFFFFF;")
         layout.addWidget(title)
 
         body = QLabel(t("session.body"))
@@ -124,7 +124,6 @@ class SessionView(QWidget):
         cli_action_row = QHBoxLayout()
         self.cli_status = QLabel("")
         self.cli_status.setObjectName("cliSessionStatus")
-        self.cli_status.setObjectName("cliSessionIdle")
         cli_action_row.addWidget(self.cli_status)
         cli_action_row.addStretch(1)
 
@@ -226,12 +225,14 @@ class SessionView(QWidget):
         if session and session.is_running:
             tool = cli_session.CLI_TOOLS.get(session.tool_id, {})
             self.cli_status.setText(f"SESIÓN ACTIVA: {tool.get('name', '').upper()}")
-            self.cli_status.setObjectName("cliSessionActive")
+            self.cli_status.setObjectName("cliSessionStatus")
+            self.cli_status.setStyleSheet("color: #FFFFFF;")
             self.cli_stop_btn.setVisible(True)
             self.cli_start_btn.setVisible(False)
         else:
             self.cli_status.setText(t("session.inactive"))
-            self.cli_status.setObjectName("cliSessionIdle")
+            self.cli_status.setObjectName("cliSessionStatus")
+            self.cli_status.setStyleSheet("color: #9A9A9A;")
             self.cli_stop_btn.setVisible(False)
             self.cli_start_btn.setVisible(True)
         self.cli_status.style().unpolish(self.cli_status)

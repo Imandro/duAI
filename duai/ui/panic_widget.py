@@ -41,7 +41,7 @@ class PanicWidget(QWidget):
         layout.addWidget(micro)
 
         title = QLabel(t("panic.mode"))
-        title.setStyleSheet("font-size: 22px; font-weight: 300;")
+        title.setStyleSheet("font-size: 22px; font-weight: 300; color: #FFFFFF;")
         layout.addWidget(title)
 
         caption = QLabel(t("panic.desc"))
@@ -52,7 +52,7 @@ class PanicWidget(QWidget):
 
         self.panic_btn = QPushButton(t("panic.btn"))
         self.panic_btn.setObjectName("panicButton")
-        self.panic_btn.setCursor(self.cursor())
+        self.panic_btn.setCursor(__import__("PySide6.QtCore", fromlist=["Qt"]).Qt.CursorShape.PointingHandCursor)
         self.panic_btn.clicked.connect(self.trigger_panic)
         layout.addWidget(self.panic_btn)
 

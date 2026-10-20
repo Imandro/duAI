@@ -143,16 +143,15 @@ class MainWindow(QMainWindow):
             side_layout.addWidget(btn)
         side_layout.addSpacing(12)
 
-        self.theme_btn = QPushButton(self._theme_btn_label())
+        # Unico tema negro: no se muestra boton de cambio de tema
+        self.theme_btn = QPushButton(t("app.theme_dark"))
         self.theme_btn.setObjectName("navButton")
-        self.theme_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.theme_btn.clicked.connect(lambda: self.apply_ui_mode(
-            "oscuro" if get_settings().get("ui_mode") != "oscuro" else "claro"
-        ))
+        self.theme_btn.setEnabled(False)
+        self.theme_btn.setVisible(False)
         side_layout.addWidget(self.theme_btn)
         side_layout.addStretch(1)
 
-        github_html = '<span style="color:#888;font-size:10px;">&#xf09b; Imandro</span>'
+        github_html = '<span style="color:#888;font-size:10px;">&#9733; Imandro</span>'
         github_link = QLabel(github_html)
         github_link.setObjectName("githubLink")
         github_link.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -195,7 +194,7 @@ class MainWindow(QMainWindow):
         self.cli_drawer = QTextEdit()
         self.cli_drawer.setObjectName("cliOutput")
         self.cli_drawer.setReadOnly(True)
-        self.cli_drawer.setVisible(False)
+        self.cli_drawer.setVisible(True)
         self.cli_drawer.setMaximumHeight(170)
         drawer_row = QHBoxLayout()
         drawer_row.setContentsMargins(0, 0, 0, 0)
@@ -219,6 +218,7 @@ class MainWindow(QMainWindow):
         inner_drawer.addLayout(drawer_header)
         self.cli_drawer.setParent(None)
         inner_drawer.addWidget(self.cli_drawer)
+        self.cli_drawer.setVisible(True)
         drawer_row.addWidget(drawer_container)
         self.drawer_container = drawer_container
         drawer_container.setVisible(False)
@@ -266,7 +266,7 @@ class MainWindow(QMainWindow):
 
         self._accent_mode = accent
         get_settings().set("accent_color", accent)
-        apply_theme(QApplication.instance(), get_settings().get("ui_mode") or "claro", accent)
+        apply_theme(QApplication.instance(), "oscuro", accent)
         self.theme_btn.setText(self._theme_btn_label())
         self.tray.setIcon(self._make_tray_icon())
         self._update_logo()
@@ -357,6 +357,7 @@ class MainWindow(QMainWindow):
     # ---------------- cli ----------------
 
     def cli_output(self, line=""):
+        self.cli_drawer.setVisible(True)
         if not self.drawer_container.isVisible():
             self.drawer_container.setVisible(True)
             self.drawer_container.setMaximumHeight(0)
@@ -600,8 +601,18 @@ def create_app(argv=None):
     icon = QIcon(_icon_path())
     app.setWindowIcon(icon)
     from .ui.theme import apply_theme
+    from PySide6.QtGui import QPalette, QColor
 
-    apply_theme(app, get_settings().get("ui_mode") or "claro")
+    # Forzar texto blanco en toda la aplicacion (evita que estilo nativo de Windows use texto negro)
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.WindowText, QColor("#FFFFFF"))
+    palette.setColor(QPalette.ColorRole.Text, QColor("#FFFFFF"))
+    palette.setColor(QPalette.ColorRole.Window, QColor("#000000"))
+    palette.setColor(QPalette.ColorRole.Base, QColor("#000000"))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor("#0D0D0D"))
+    app.setPalette(palette)
+
+    apply_theme(app, "oscuro")
     window = MainWindow()
     return app, window
 

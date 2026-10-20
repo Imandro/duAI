@@ -1,3 +1,4 @@
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
     QHBoxLayout,
@@ -35,7 +36,7 @@ class CleanView(QWidget):
 
         header = QHBoxLayout()
         title = QLabel(t("clean.subtitle"))
-        title.setStyleSheet("font-size: 22px; font-weight: 300;")
+        title.setStyleSheet("font-size: 22px; font-weight: 300; color: #FFFFFF;")
         header.addWidget(title)
         header.addStretch(1)
         self.run_btn = QPushButton(t("clean.btn_exec"))
@@ -46,6 +47,7 @@ class CleanView(QWidget):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         content = QWidget()
         self.groups_layout = QVBoxLayout(content)
         self.groups_layout.setContentsMargins(0, 0, 16, 0)

@@ -39,7 +39,7 @@ class ViralView(QWidget):
         outer.addWidget(micro)
 
         title = QLabel(t("viral.achievements"))
-        title.setStyleSheet("font-size: 22px; font-weight: 300; letter-spacing: 2px;")
+        title.setStyleSheet("font-size: 22px; font-weight: 300; letter-spacing: 2px; color: #FFFFFF;")
         outer.addWidget(title)
 
         scroll = QScrollArea()
@@ -117,18 +117,22 @@ class ViralView(QWidget):
                 frame = QFrame()
                 frame.setObjectName("achievement")
                 frame.setProperty("achievement", "unlocked" if ach["unlocked"] else "locked")
-                frame.setStyleSheet("")
-                box = QVBoxLayout(frame)
-                box.setContentsMargins(12, 10, 12, 10)
-                box.setSpacing(4)
-                name = QLabel(ach["name"])
-                name.setObjectName("name")
-                box.addWidget(name)
-                desc = QLabel(ach["desc"])
-                desc.setObjectName("desc")
-                desc.setWordWrap(True)
-                box.addWidget(desc)
-                self.ach_layout.addWidget(frame)
+        if ach["unlocked"]:
+            frame.setStyleSheet("border: 1px solid #FFFFFF;")
+        else:
+            frame.setStyleSheet("opacity: 0.4;")
+        frame.setStyleSheet("")
+        box = QVBoxLayout(frame)
+        box.setContentsMargins(12, 10, 12, 10)
+        box.setSpacing(4)
+        name = QLabel(ach["name"])
+        name.setObjectName("name")
+        box.addWidget(name)
+        desc = QLabel(ach["desc"])
+        desc.setObjectName("desc")
+        desc.setWordWrap(True)
+        box.addWidget(desc)
+        self.ach_layout.addWidget(frame)
 
         # Actualizar stats animados
         count_to(self.stat_scans, self.stats.get("scans", 0), formatter=str)

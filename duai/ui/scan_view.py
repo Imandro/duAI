@@ -58,7 +58,7 @@ class ScanView(QWidget):
 
         header = QHBoxLayout()
         title = QLabel(t("scan.subtitle"))
-        title.setStyleSheet("font-size: 22px; font-weight: 300;")
+        title.setStyleSheet("font-size: 22px; font-weight: 300; color: #FFFFFF;")
         header.addWidget(title)
         header.addStretch(1)
         self.cancel_btn = QPushButton(t("scan.cancel"))

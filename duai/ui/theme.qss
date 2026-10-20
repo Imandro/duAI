@@ -10,6 +10,7 @@ QMainWindow, QDialog {
     background: __BG__;
 }
 
+/* Muted/secondary label */
 #microLabel {
     color: __SOFT__;
     font-size: 10px;
@@ -32,6 +33,7 @@ QMainWindow, QDialog {
     font-size: 28px;
     font-weight: 300;
     letter-spacing: 0.5px;
+    color: __FG__;
 }
 
 #heroBody {
@@ -51,6 +53,13 @@ QMainWindow, QDialog {
     font-size: 24px;
     font-weight: 300;
     letter-spacing: 0.5px;
+    color: __FG__;
+}
+
+#statusLabel {
+    color: __SOFT__;
+    font-size: 11px;
+    letter-spacing: 1px;
 }
 
 QPushButton {
@@ -68,6 +77,7 @@ QPushButton {
 QPushButton:hover {
     background: __SOFT__;
     border-color: __SOFT__;
+    color: __BG__;
 }
 
 QPushButton:pressed {
@@ -122,17 +132,50 @@ QPushButton:disabled {
     color: __FG__;
 }
 
-#lineEdit, QSpinBox {
+#panicButton:disabled {
+    background: __ALT__;
+    color: __SOFT__;
+    border-color: __LINE__;
+}
+
+QLineEdit, QSpinBox {
     border: 1px solid __LINE__;
     border-radius: 4px;
     padding: 8px 12px;
     background: __BG__;
+    color: __FG__;
     selection-background-color: __FG__;
     selection-color: __BG__;
 }
 
-#lineEdit:focus, QSpinBox:focus {
+QLineEdit:focus, QSpinBox:focus {
     border: 1px solid __FG__;
+}
+
+QComboBox {
+    border: 1px solid __LINE__;
+    border-radius: 4px;
+    padding: 8px 12px;
+    background: __BG__;
+    color: __FG__;
+    min-width: 120px;
+}
+
+QComboBox:hover {
+    border-color: __FG__;
+}
+
+QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox QAbstractItemView {
+    background: __BG__;
+    color: __FG__;
+    border: 1px solid __LINE__;
+    selection-background-color: __HOVER__;
+    selection-color: __FG__;
 }
 
 QTableWidget {
@@ -142,15 +185,19 @@ QTableWidget {
     selection-background-color: __HOVER__;
     selection-color: __FG__;
     alternate-background-color: __ALT__;
+    color: __FG__;
+    background: __BG__;
 }
 
 QTableWidget::item {
     padding: 6px 8px;
     border-bottom: 1px solid __LINE__;
+    color: __FG__;
 }
 
 QTableWidget::item:selected {
     background: __HOVER__;
+    color: __FG__;
 }
 
 QHeaderView::section {
@@ -169,6 +216,7 @@ QCheckBox, QRadioButton {
     font-size: 12px;
     font-weight: 500;
     padding: 4px 0;
+    color: __FG__;
 }
 
 QCheckBox::indicator, QRadioButton::indicator {
@@ -195,7 +243,6 @@ QCheckBox::indicator:checked, QRadioButton::indicator:checked {
 QCheckBox::indicator:checked:hover, QRadioButton::indicator:checked:hover {
     background: __FG__;
     border-color: __FG__;
-    opacity: 0.8;
 }
 
 QTextEdit {
@@ -203,6 +250,8 @@ QTextEdit {
     border-radius: 4px;
     font-family: "Consolas";
     font-size: 11px;
+    color: __FG__;
+    background: __BG__;
     selection-background-color: __FG__;
     selection-color: __BG__;
 }
@@ -226,7 +275,7 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 }
 
 #divider {
-    background-color: transparent;
+    background-color: __LINE__;
     max-height: 1px;
     border: none;
 }
@@ -367,29 +416,14 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
     color: __FG__;
 }
 
-#badgeFound {
-    background: __FG__;
-    color: __BG__;
-}
-
-#badgeEmpty {
-    background: __HOVER__;
-    color: __SOFT__;
-}
-
-#badgeLocked {
-    background: __HOVER__;
-    color: __SOFT__;
-}
-
-#badgeReady {
+#badgeFound, #badgeEmpty, #badgeLocked, #badgeReady, #badgeError {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 3px 10px;
+    border-radius: 10px;
     background: __HOVER__;
     color: __FG__;
-}
-
-#badgeError {
-    background: __HOVER__;
-    color: __SOFT__;
 }
 
 #progressBar {
@@ -440,7 +474,7 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
     letter-spacing: 3px;
 }
 
-#cliSessionStatus {
+#cliSessionStatus, #cliSessionActive, #cliSessionIdle {
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 1px;
@@ -477,7 +511,7 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 }
 
 #shareBtn {
-    background: __ACCENT__;
+    background: __FG__;
     color: __BG__;
     border: none;
     border-radius: 4px;
@@ -489,10 +523,12 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 }
 
 #shareBtn:hover {
-    background: __ACCENT_HOVER__;
+    background: __SOFT__;
+    color: __BG__;
 }
 
-.achievement {
+/* Achievement cards */
+#achievement {
     background: __ALT__;
     border: 1px solid __LINE__;
     border-radius: 6px;
@@ -500,30 +536,29 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
     margin-bottom: 8px;
 }
 
-.achievement.unlocked {
-    border: 1px solid __ACCENT__;
+#achievement[achievement="unlocked"] {
+    border: 1px solid __FG__;
 }
 
-.achievement.locked {
+#achievement[achievement="locked"] {
     opacity: 0.4;
 }
 
-.achievement .name {
+#achievement #name {
     font-weight: 600;
     letter-spacing: 1px;
     color: __FG__;
 }
 
-.achievement .desc {
+#achievement #desc {
     font-size: 10px;
     color: __SOFT__;
     margin-top: 4px;
 }
 
-.shareHint {
+#shareHint {
     color: __SOFT__;
     font-size: 10px;
     letter-spacing: 1px;
     margin-top: 8px;
 }
-

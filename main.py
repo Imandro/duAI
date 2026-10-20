@@ -58,7 +58,7 @@ def _take_screenshots():
     app.processEvents()
     time.sleep(0.5)
 
-    # dark mode for screenshots
+    # Unico tema: negro oscuro (no hay modo claro)
     get_settings().set("ui_mode", "oscuro")
     from duai.ui.theme import apply_theme
     apply_theme(app, "oscuro")
@@ -69,7 +69,7 @@ def _take_screenshots():
     out_dir = os.path.join(os.path.dirname(__file__), "website", "assets", "screenshots")
     os.makedirs(out_dir, exist_ok=True)
 
-    tabs = ["dashboard", "scan", "clean", "panic", "session", "settings", "terminal"]
+    tabs = ["dashboard", "scan", "clean", "panic", "session", "settings", "terminal", "viral", "updater"]
 
     for i, name in enumerate(tabs):
         window.navigate(i)
@@ -81,27 +81,6 @@ def _take_screenshots():
         pixmap.save(path, "PNG")
         kb = os.path.getsize(path) / 1024
         print(f"  {name}.png ({kb:.0f} KB)")
-
-    # light mode screenshots
-    get_settings().set("ui_mode", "claro")
-    apply_theme(app, "claro")
-    window.show()
-    app.processEvents()
-    time.sleep(0.3)
-
-    light_dir = os.path.join(out_dir, "light")
-    os.makedirs(light_dir, exist_ok=True)
-
-    for i, name in enumerate(tabs):
-        window.navigate(i)
-        app.processEvents()
-        time.sleep(0.8)
-        screen = app.primaryScreen()
-        pixmap = screen.grabWindow(window.winId())
-        path = os.path.join(light_dir, f"{name}.png")
-        pixmap.save(path, "PNG")
-        kb = os.path.getsize(path) / 1024
-        print(f"  light/{name}.png ({kb:.0f} KB)")
 
     print(f"\nScreenshots guardados en: {out_dir}")
     return 0

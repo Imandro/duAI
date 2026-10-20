@@ -483,10 +483,10 @@ class CommandRouter:
         self.mw.refresh_settings_page()
 
     def cmd_tema(self, args, flags):
-        if not args or args[0].lower() not in ("claro", "oscuro"):
+        if not args or args[0].lower() not in ("oscuro",):
             self.out(t("cli.theme_usage"))
             return
-        self.mw.apply_ui_mode(args[0].lower())
+        self.mw.apply_ui_mode("oscuro")
 
     def cmd_widget(self, args, flags):
         if not args or args[0].lower() not in ("si", "no"):

@@ -47,7 +47,7 @@ class UpdaterView(QWidget):
         outer.addWidget(micro)
 
         title = QLabel(f"duAI v{CURRENT_VERSION}")
-        title.setStyleSheet("font-size: 24px; font-weight: 300; letter-spacing: 2px;")
+        title.setStyleSheet("font-size: 24px; font-weight: 300; letter-spacing: 2px; color: #FFFFFF;")
         outer.addWidget(title)
 
         self.status = QLabel(t("updater.up_to_date", version=CURRENT_VERSION))
@@ -77,8 +77,9 @@ class UpdaterView(QWidget):
 
         self.notes = QTextEdit()
         self.notes.setReadOnly(True)
+        self.notes.setMinimumHeight(120)
         self.notes.setMaximumHeight(200)
-        self.notes.setPlaceholderText("Notas de la version aparecera aqui.")
+        self.notes.setPlaceholderText(t("updater.release_notes"))
         outer.addWidget(self.notes)
 
         # Opcion de comprobar al inicio

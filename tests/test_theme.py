@@ -13,14 +13,13 @@ class ThemeTest(unittest.TestCase):
                 self.assertNotIn("__" + token + "__", css, f"token sin sustituir en {mode}")
             self.assertNotIn("__", css)
 
-    def test_modes_are_pure_inverses(self):
-        light = PALETTES["claro"]
+    def test_dark_mode_colors(self):
         dark = PALETTES["oscuro"]
-        self.assertEqual((light["BG"], light["FG"]), ("#FFFFFF", "#000000"))
         self.assertEqual((dark["BG"], dark["FG"]), ("#000000", "#FFFFFF"))
 
-    def test_palettes_share_keys(self):
-        self.assertEqual(set(PALETTES["claro"].keys()), set(PALETTES["oscuro"].keys()))
+    def test_palette_has_all_keys(self):
+        expected = {"BG", "FG", "SOFT", "BODY", "LINE", "GRID", "ALT", "HOVER", "HANDLE"}
+        self.assertEqual(set(PALETTES["oscuro"].keys()), expected)
 
 
 if __name__ == "__main__":

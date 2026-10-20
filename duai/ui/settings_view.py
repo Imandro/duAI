@@ -35,7 +35,7 @@ class SettingsView(QWidget):
         micro.setObjectName("microLabel")
         outer.addWidget(micro)
         title = QLabel(t("set.subtitle"))
-        title.setStyleSheet("font-size: 22px; font-weight: 300;")
+        title.setStyleSheet("font-size: 22px; font-weight: 300; color: #FFFFFF;")
         outer.addWidget(title)
 
         scroll = QScrollArea()
@@ -281,7 +281,7 @@ class SettingsView(QWidget):
         value = self._accent_map.get(key, "")
         from .theme import apply_theme
         from PySide6.QtWidgets import QApplication
-        apply_theme(QApplication.instance(), get_settings().get("ui_mode") or "claro", value)
+        apply_theme(QApplication.instance(), "oscuro", value)
         get_settings().set("accent_color", value)
         self.mw.apply_accent_mode(value)
 

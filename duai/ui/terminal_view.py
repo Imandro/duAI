@@ -32,7 +32,7 @@ class TerminalView(QWidget):
         layout.addWidget(header)
 
         title = QLabel(t("term.subtitle"))
-        title.setStyleSheet("font-size: 22px; font-weight: 300;")
+        title.setStyleSheet("font-size: 22px; font-weight: 300; color: #FFFFFF;")
         layout.addWidget(title)
 
         hint = QLabel(t("term.hint"))
@@ -74,7 +74,8 @@ class TerminalView(QWidget):
 
         status_row = QHBoxLayout()
         self.session_status = QLabel(t("term.no_session"))
-        self.session_status.setObjectName("cliSessionIdle")
+        self.session_status.setObjectName("cliSessionStatus")
+        self.session_status.setStyleSheet("color: #9A9A9A;")
         status_row.addWidget(self.session_status)
         status_row.addStretch(1)
         self.stop_btn = QPushButton(t("term.close_session"))
@@ -186,7 +187,8 @@ class TerminalView(QWidget):
 
     def _reset_ui(self):
         self.session_status.setText(t("term.no_session"))
-        self.session_status.setObjectName("cliSessionIdle")
+        self.session_status.setObjectName("cliSessionStatus")
+        self.session_status.setStyleSheet("color: #9A9A9A;")
         self.session_status.style().unpolish(self.session_status)
         self.session_status.style().polish(self.session_status)
         self.stop_btn.setVisible(False)

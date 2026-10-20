@@ -16,7 +16,7 @@ DEFAULTS = {
     "panic_mode": "recycle",
     "self_purge_on_exit": False,
     "hosts_block": False,
-    "ui_mode": "claro",
+    "ui_mode": "oscuro",
     "language": "es",
     "float_visible": False,
     "float_x": None,

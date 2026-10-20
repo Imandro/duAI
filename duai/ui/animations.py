@@ -46,7 +46,10 @@ class FadeStack(QStackedWidget):
             return
         self.setCurrentIndex(index)
         page = self.widget(index)
-        fade_widget(page, duration=200, start=0.0, end=1.0, cleanup=True)
+        # Ensure the page is visible and repainted
+        page.setVisible(True)
+        page.update()
+        page.repaint()
 
     def setCurrentIndex(self, index):  # compat: siempre animado
         super().setCurrentIndex(index)
