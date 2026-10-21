@@ -11,7 +11,7 @@ from PySide6.QtCore import (
 from PySide6.QtWidgets import (
     QFileDialog, QHBoxLayout, QMessageBox, QProgressBar,
     QTableView, QLabel, QPushButton, QVBoxLayout, QWidget,
-    QLineEdit, QMenu, QGraphicsOpacityEffect, QHeaderView
+    QLineEdit, QMenu, QHeaderView
 )
 from PySide6.QtGui import QKeySequence, QShortcut, QAction
 
@@ -21,6 +21,7 @@ from ..core.scanner import (
     STATUS_ADMIN, STATUS_EMPTY, STATUS_ERROR, STATUS_FOUND,
     STATUS_LOCKED, STATUS_READY, ScanProgress
 )
+from .animations import fade_out
 from .worker import Worker
 from ..utils.paths import fmt_bytes
 
@@ -522,9 +523,6 @@ class ScanView(QWidget):
 
     def _show_clean_celebration(self):
         """Show celebration animation for clean scan."""
-        from PySide6.QtWidgets import QGraphicsOpacityEffect, QLabel
-        from PySide6.QtCore import QPropertyAnimation, QEasingCurve
-
         check = QLabel("✨")
         check.setStyleSheet("font-size: 64px;")
         check.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -532,18 +530,9 @@ class ScanView(QWidget):
         check.move(self.width() // 2 - 32, self.height() // 2 - 32)
         check.show()
 
-        effect = QGraphicsOpacityEffect()
-        check.setGraphicsEffect(effect)
+        fade_out(check, duration=1500, on_finished=check.deleteLater)
 
-        anim = QPropertyAnimation(effect, b"opacity")
-        anim.setDuration(1500)
-        anim.setStartValue(1.0)
-        anim.setEndValue(0.0)
-        anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        anim.finished.connect(check.deleteLater)
-        anim.start()
-
-        self._pulse_label(self.summary, "#10B981")
+        self._pulse_label(self.summary, "#FFFFFF")
 
     def _show_warning_pulse(self):
         """Pulse warning for many findings."""

@@ -3,15 +3,15 @@
 from PySide6.QtWidgets import (
     QCheckBox, QHBoxLayout, QLabel, QMessageBox, QPushButton,
     QRadioButton, QSpinBox, QTextEdit, QVBoxLayout, QWidget,
-    QButtonGroup, QGraphicsOpacityEffect, QProgressBar, QFrame
+    QButtonGroup, QProgressBar, QFrame
 )
-from PySide6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QPoint
+from PySide6.QtCore import Qt, QTimer, QPoint
 from PySide6.QtGui import QGuiApplication, QKeySequence, QShortcut
 
 from ..core.panic import format_result_summary, perform_panic
 from ..i18n import t
 from ..utils.settings import get_settings
-from .animations import Pulsing
+from .animations import Pulsing, fade_out
 from .worker import Worker
 
 MODES = [
@@ -385,15 +385,7 @@ class PanicWidget(QWidget):
         self._hotkey_toast.show()
 
         # Fade out animation
-        effect = QGraphicsOpacityEffect()
-        self._hotkey_toast.setGraphicsEffect(effect)
-        anim = QPropertyAnimation(effect, b"opacity")
-        anim.setDuration(2500)
-        anim.setStartValue(1.0)
-        anim.setEndValue(0.0)
-        anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        anim.finished.connect(self._hotkey_toast.deleteLater)
-        anim.start()
+        fade_out(self._hotkey_toast, duration=2500, on_finished=self._hotkey_toast.deleteLater)
 
     def _save_float(self, state):
         get_settings().set("float_visible", bool(state))

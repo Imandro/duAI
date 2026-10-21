@@ -39,6 +39,46 @@ def fade_widget(widget: QWidget, duration=NORMAL, start=0.0, end=1.0, cleanup=Fa
     return _keep(widget, "_fade_anim", anim)
 
 
+def fade_out(widget: QWidget, duration=NORMAL, on_finished=None):
+    """Desvanece un widget a opacidad 0 y, al terminar, llama on_finished."""
+    effect = QGraphicsOpacityEffect(widget)
+    effect.setOpacity(1.0)
+    widget.setGraphicsEffect(effect)
+    anim = QPropertyAnimation(effect, b"opacity", widget)
+    anim.setDuration(duration)
+    anim.setStartValue(1.0)
+    anim.setEndValue(0.0)
+    anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+    def _finish():
+        widget.setGraphicsEffect(None)
+        if on_finished:
+            on_finished()
+
+    anim.finished.connect(_finish)
+    anim.start(QPropertyAnimation.DeletionPolicy.DeleteWhenStopped)
+    return _keep(widget, "_fade_out_anim", anim)
+
+
+def fade_in(widget: QWidget, duration=NORMAL, start=0.0, end=1.0):
+    """Desvanece un widget de entrada (opacidad start -> end) sin efecto residual."""
+    effect = QGraphicsOpacityEffect(widget)
+    effect.setOpacity(start)
+    widget.setGraphicsEffect(effect)
+    anim = QPropertyAnimation(effect, b"opacity", widget)
+    anim.setDuration(duration)
+    anim.setStartValue(start)
+    anim.setEndValue(end)
+    anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+    def _finish():
+        widget.setGraphicsEffect(None)
+
+    anim.finished.connect(_finish)
+    anim.start(QPropertyAnimation.DeletionPolicy.DeleteWhenStopped)
+    return _keep(widget, "_fade_in_anim", anim)
+
+
 class FadeStack(QStackedWidget):
     def setCurrentIndexAnimated(self, index):
         if index == self.currentIndex():

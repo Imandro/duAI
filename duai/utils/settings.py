@@ -26,6 +26,8 @@ CONFIG_SCHEMA: Dict[str, ConfigField] = {
     "exclusions": ConfigField(list, [], lambda v: isinstance(v, list) and all(isinstance(i, str) for i in v), "Rutas excluidas"),
     "password_hash": ConfigField(str, None, lambda v: v is None or (isinstance(v, str) and len(v) >= 32), "Hash Argon2", sensitive=True),
     "password_salt": ConfigField(str, None, lambda v: v is None or (isinstance(v, str) and len(v) == 32), "Salt para hash", sensitive=True),
+    "password_fail_count": ConfigField(int, 0, lambda v: isinstance(v, int) and v >= 0, "Intentos fallidos consecutivos de contraseña"),
+    "password_lock_until": ConfigField(str, None, None, "Timestamp de fin de bloqueo de contraseña"),
     "auto_clean_on_exit": ConfigField(bool, False, None, "Limpiar al salir"),
     "auto_interval_min": ConfigField(int, 0, lambda v: isinstance(v, int) and v >= 0, "Intervalo auto-limpieza (min)"),
     "hotkey_enabled": ConfigField(bool, False, None, "Hotkey global habilitado"),

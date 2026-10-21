@@ -7,7 +7,7 @@ from PySide6.QtCore import (Qt, QTimer, QPropertyAnimation, QEasingCurve, QRect,
 from PySide6.QtGui import QPainter, QColor, QPen, QFont, QPixmap
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QWidget, QFrame, QPushButton,
-    QStackedWidget, QGraphicsOpacityEffect, QScrollArea, QGridLayout
+    QStackedWidget, QScrollArea, QGridLayout
 )
 
 from ..i18n import t

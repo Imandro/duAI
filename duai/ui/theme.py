@@ -42,8 +42,8 @@ class ColorPalette:
     accent_hover: str = "#9A9A9A"
     accent_text: str = "#000000"
 
-    success: str = "#00FF40"
-    success_hover: str = "#33FF66"
+    success: str = "#FFFFFF"
+    success_hover: str = "#FFFFFF"
     warning: str = "#FFB800"
     warning_hover: str = "#FFCC33"
     error: str = "#FF0040"
@@ -87,8 +87,8 @@ DARK_PALETTE = ColorPalette(
     accent="#FFFFFF",
     accent_hover="#9A9A9A",
     accent_text="#000000",
-    success="#00FF40",
-    success_hover="#33FF66",
+    success="#FFFFFF",
+    success_hover="#FFFFFF",
     warning="#FFB800",
     warning_hover="#FFCC33",
     error="#FF0040",
@@ -112,8 +112,8 @@ DARK_HIGH_CONTRAST_PALETTE = ColorPalette(
     accent="#FFFF00",
     accent_hover="#FFFF33",
     accent_text="#000000",
-    success="#00FF00",
-    success_hover="#33FF33",
+    success="#FFFFFF",
+    success_hover="#FFFFFF",
     warning="#FFFF00",
     warning_hover="#FFFF33",
     error="#FF0000",
@@ -263,11 +263,16 @@ QPushButton {
 }
 QPushButton:hover { background: __ACCENT_HOVER__; border-color: __ACCENT_HOVER__; }
 QPushButton:pressed { background: __BG__; color: __FG__; }
-QPushButton:disabled { border-color: __BORDER_SUBTLE__; color: __DISABLED__; background: __BG_SECONDARY__; }
+QPushButton:disabled { border-color: __BORDER_SUBTLE__; color: __FG__; background: __BG__; }
 QLineEdit, QSpinBox, QComboBox {
     border: 1px solid __BORDER__;
     border-radius: __BORDER_RADIUS__px;
     padding: 8px 12px;
+    background: __BG__;
+    color: __FG__;
+}
+QLineEdit:disabled, QSpinBox:disabled, QComboBox:disabled {
+    border: 1px solid __BORDER__;
     background: __BG__;
     color: __FG__;
 }
@@ -281,6 +286,25 @@ QTableWidget {
     background: __BG__;
     color: __FG__;
 }
+QTableView, QTreeView {
+    border: 1px solid __BORDER__;
+    gridline-color: transparent;
+    selection-background-color: __HOVER__;
+    selection-color: __FG__;
+    alternate-background-color: __BG_SECONDARY__;
+    background: __BG__;
+    color: __FG__;
+}
+QTableView::item, QTreeView::item {
+    padding: 6px 8px;
+    border-bottom: 1px solid __BORDER__;
+    color: __FG__;
+}
+QTableView::item:selected, QTreeView::item:selected {
+    background: __HOVER__;
+    color: __FG__;
+}
+QTableView:disabled, QTreeView:disabled { color: __FG__; background: __BG__; }
 QHeaderView::section {
     background: __BG__;
     border: none;
@@ -288,6 +312,7 @@ QHeaderView::section {
     padding: 10px 8px;
     color: __SOFT__;
 }
+QCheckBox:disabled, QRadioButton:disabled { color: __FG__; }
 QCheckBox::indicator, QRadioButton::indicator {
     width: 18px; height: 18px;
     border: 2px solid __BORDER__;
@@ -310,6 +335,17 @@ QScrollBar:vertical { background: __BG__; width: 6px; }
 QScrollBar::handle:vertical { background: __HANDLE__; min-height: 30px; border-radius: 3px; }
 #progressBar { background: __BORDER_SUBTLE__; border-radius: 2px; max-height: 4px; }
 #progressBar::chunk { background: __ACCENT__; border-radius: 2px; }
+QProgressBar {
+    border: none;
+    border-radius: 2px;
+    background: __BG__;
+    color: __FG__;
+    text-align: center;
+}
+QProgressBar::chunk {
+    background: __ACCENT__;
+    border-radius: 2px;
+}
 #accentBtn { background: __ACCENT__; color: __ACCENT_TEXT__; }
 #accentBtn:hover { background: __ACCENT_HOVER__; }
 .status-success { color: __SUCCESS__; }

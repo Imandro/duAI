@@ -131,31 +131,9 @@ class CommandRouter:
             return
         handler = getattr(self, f"cmd_{cmd}", None)
         if handler is None:
-            self._run_powershell(text)
+            self.out(t("cli.unknown_command", cmd=cmd))
             return
         handler(args, flags)
-
-    def _run_powershell(self, text):
-        import subprocess
-
-        self.out(f"PS> {text}")
-        try:
-            result = subprocess.run(
-                ["powershell.exe", "-NoLogo", "-NoProfile", "-Command", text],
-                capture_output=True, text=True, timeout=30,
-            )
-            if result.stdout.strip():
-                for line in result.stdout.strip().splitlines():
-                    self.out(line)
-            if result.stderr.strip():
-                for line in result.stderr.strip().splitlines():
-                    self.out(f"[ERROR] {line}")
-            if result.returncode != 0:
-                self.out(t("cli.code", code=result.returncode))
-        except subprocess.TimeoutExpired:
-            self.out(t("cli.timeout"))
-        except Exception as exc:
-            self.out(f"[ERROR] {exc}")
 
     # ---------------- ayuda / estado ----------------
 

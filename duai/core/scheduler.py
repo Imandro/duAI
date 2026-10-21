@@ -713,7 +713,7 @@ class TaskScheduler:
             </TimeTrigger>
             """
         
-        exe_path = os.path.abspath(sys.executable) if getattr(sys, 'frozen', False) else "python.exe"
+        exe_path = sys.executable
         script_args = f"-m duai.cli run_task {task.id}"
         
         return f"""<?xml version="1.0" encoding="UTF-16"?>
@@ -727,7 +727,7 @@ class TaskScheduler:
     </Triggers>
     <Principals>
         <Principal id="Author">
-            <RunLevel>HighestAvailable</RunLevel>
+            <RunLevel>LeastAvailable</RunLevel>
         </Principal>
     </Principals>
     <Settings>

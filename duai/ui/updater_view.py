@@ -258,6 +258,7 @@ class UpdaterView(QWidget):
         self._worker = None
         self._download_worker = None
         self._download_url = ""
+        self._signature_url = ""
         self._expected_sha256 = ""
         self._verification_steps = []
         self._rollback_manager = RollbackManager()
@@ -494,6 +495,7 @@ class UpdaterView(QWidget):
                     pass
                 self.notes.setPlainText(result.release_notes or "(sin notas de version)")
                 self._download_url = result.download_url
+                self._signature_url = result.signature_url
                 self.download_btn.setEnabled(bool(result.download_url))
 
                 if result.sha256_url:
@@ -537,6 +539,7 @@ class UpdaterView(QWidget):
                 self._download_url,
                 dest_path,
                 expected_sha256=self._expected_sha256,
+                signature_url=getattr(self, "_signature_url", ""),
             )
 
         def done(ok):

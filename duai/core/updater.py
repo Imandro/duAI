@@ -230,12 +230,17 @@ def verify_signature(file_path: str, signature_path: str) -> bool:
 def download_update(url: str, dest_path: str, expected_sha256: str = "", progress_cb=None, signature_url: str = "") -> bool:
     """Descarga un archivo y verifica SHA-256 y opcionalmente firma Ed25519."""
     try:
+        # Saneamiento de destino: impedir path traversal a traves de dest_path.
+        # Solo se permite un nombre de archivo directo dentro del directorio indicado.
+        dest_dir = os.path.dirname(os.path.abspath(dest_path))
+        dest_path = os.path.join(dest_dir, os.path.basename(dest_path))
+        tmp_path = dest_path + ".part"
+        sig_path = dest_path + ".sig"
         req = Request(url, headers={"User-Agent": "duAI-Updater/2.0"})
         with urlopen(req, timeout=30) as resp:
             total = int(resp.headers.get("Content-Length", 0) or 0)
             downloaded = 0
             block = 65536
-            tmp_path = dest_path + ".part"
             with open(tmp_path, "wb") as out:
                 while True:
                     chunk = resp.read(block)
@@ -259,7 +264,6 @@ def download_update(url: str, dest_path: str, expected_sha256: str = "", progres
 
         # Verify Ed25519 signature if available
         if signature_url:
-            sig_path = dest_path + ".sig"
             # Download signature
             try:
                 sig_req = Request(signature_url, headers={"User-Agent": "duAI-Updater/2.0"})
@@ -285,16 +289,16 @@ def download_update(url: str, dest_path: str, expected_sha256: str = "", progres
                     except OSError:
                         pass
 
-        # Atomic rename
-        if os.path.exists(dest_path):
-            os.remove(dest_path)
-        os.rename(tmp_path, dest_path)
+        # Renombre atomico: os.replace reemplaza el destino existente de forma
+        # atomica tanto en Windows como en POSIX, sin ventana de TOCTOU entre
+        # borrar y renombrar.
+        os.replace(tmp_path, dest_path)
         return True
     except Exception as exc:
         log("updater", download_error=str(exc))
         try:
-            if os.path.exists(dest_path + ".part"):
-                os.remove(dest_path + ".part")
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
         except OSError:
             pass
         return False

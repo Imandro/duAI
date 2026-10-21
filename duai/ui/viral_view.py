@@ -6,7 +6,7 @@ from PySide6.QtGui import QDesktopServices, QPainter, QPen, QColor, QShortcut, Q
 from PySide6.QtWidgets import (
     QHBoxLayout, QLabel, QPushButton, QScrollArea, QTextEdit,
     QVBoxLayout, QWidget, QFrame, QComboBox, QDialog, QDialogButtonBox,
-    QLineEdit, QGraphicsOpacityEffect
+    QLineEdit
 )
 
 from ..core.viral import (
@@ -20,7 +20,7 @@ from ..core.privacy_score import get_latest_score
 from ..i18n import t
 from ..utils.settings import get_settings
 from ..utils.paths import fmt_bytes
-from .animations import count_to
+from .animations import count_to, fade_in, fade_out
 
 
 class CircularProgressBar(QWidget):
@@ -66,20 +66,10 @@ class AchievementCard(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._anim = None
-        self._opacity_effect = None
 
     def animate_entrance(self):
         """Animacion de entrada escalonada (fade + slide)."""
-        effect = QGraphicsOpacityEffect(self)
-        self.setGraphicsEffect(effect)
-        self._opacity_effect = effect
-
-        self._anim = QPropertyAnimation(effect, b"opacity")
-        self._anim.setDuration(320)
-        self._anim.setStartValue(0.0)
-        self._anim.setEndValue(1.0)
-        self._anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        self._anim.start()
+        fade_in(self, duration=320)
 
         # Slide up
         geo_anim = QPropertyAnimation(self, b"geometry")
@@ -251,6 +241,25 @@ class ViralView(QWidget):
         share_row.addStretch(1)
         outer.addLayout(share_row)
 
+        # Botones de compartir directa por plataforma (abren el navegador predeterminado
+        # con el reporte de privacidad preformateado, sin datos sensibles)
+        platform_row = QHBoxLayout()
+        platform_label = QLabel(t("viral.share_platform"))
+        platform_label.setObjectName("microLabel")
+        platform_row.addWidget(platform_label)
+        for platform, key in [
+            ("twitter", "viral.share_twitter"),
+            ("telegram", "viral.share_telegram"),
+            ("whatsapp", "viral.share_whatsapp"),
+            ("facebook", "viral.share_facebook"),
+        ]:
+            btn = QPushButton(t(key))
+            btn.setObjectName("sharePlatformBtn")
+            btn.clicked.connect(lambda _, p=platform: self._share_platform(p))
+            platform_row.addWidget(btn)
+        platform_row.addStretch(1)
+        outer.addLayout(platform_row)
+
         hint = QLabel(t("viral.report_title"))
         hint.setObjectName("shareHint")
         outer.addWidget(hint)
@@ -315,15 +324,8 @@ class ViralView(QWidget):
             child = self.ach_layout.itemAt(i)
             if child and child.widget():
                 widget = child.widget()
-                effect = QGraphicsOpacityEffect()
-                widget.setGraphicsEffect(effect)
-                anim = QPropertyAnimation(effect, b"opacity")
-                anim.setDuration(150)
-                anim.setStartValue(1.0)
-                anim.setEndValue(0.0)
-                anim.finished.connect(lambda w=widget: w.deleteLater())
-                anim.start()
-                self._animations.append(anim)
+                fade_out(widget, duration=150, on_finished=lambda w=widget: w.deleteLater())
+                self._animations.append(widget)
         # Actually remove after animations
         QTimer.singleShot(200, lambda: self._do_clear_layout())
 
@@ -455,6 +457,14 @@ class ViralView(QWidget):
         url = open_share_url("twitter", text)
         QDesktopServices.openUrl(QUrl(url))
         self._track_share_event("twitter")
+
+    def _share_platform(self, platform: str):
+        """Comparte el reporte de privacidad en una plataforma mediante el navegador predeterminado."""
+        report = generate_share_report()  # reporte sin datos sensibles
+        url = open_share_url(platform, report)
+        QDesktopServices.openUrl(QUrl(url))
+        self._track_share_event(platform)
+        self.mw.cli_output(t("viral.shared_to", platform=platform.title()))
 
     def _track_share_event(self, platform: str):
         """Track share for viral mechanics."""

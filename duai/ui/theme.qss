@@ -87,8 +87,8 @@ QPushButton:pressed {
 
 QPushButton:disabled {
     border-color: __LINE__;
-    color: __SOFT__;
-    background: __ALT__;
+    color: __FG__;
+    background: __BG__;
 }
 
 #navButton {
@@ -148,6 +148,12 @@ QLineEdit, QSpinBox {
     selection-color: __BG__;
 }
 
+QLineEdit:disabled, QSpinBox:disabled {
+    border: 1px solid __LINE__;
+    background: __BG__;
+    color: __FG__;
+}
+
 QLineEdit:focus, QSpinBox:focus {
     border: 1px solid __FG__;
 }
@@ -159,6 +165,12 @@ QComboBox {
     background: __BG__;
     color: __FG__;
     min-width: 120px;
+}
+
+QComboBox:disabled {
+    border: 1px solid __LINE__;
+    background: __BG__;
+    color: __FG__;
 }
 
 QComboBox:hover {
@@ -200,6 +212,33 @@ QTableWidget::item:selected {
     color: __FG__;
 }
 
+QTableView, QTreeView {
+    border: 1px solid __LINE__;
+    border-radius: 4px;
+    gridline-color: transparent;
+    selection-background-color: __HOVER__;
+    selection-color: __FG__;
+    alternate-background-color: __ALT__;
+    color: __FG__;
+    background: __BG__;
+}
+
+QTableView::item, QTreeView::item {
+    padding: 6px 8px;
+    border-bottom: 1px solid __LINE__;
+    color: __FG__;
+}
+
+QTableView::item:selected, QTreeView::item:selected {
+    background: __HOVER__;
+    color: __FG__;
+}
+
+QTableView:disabled, QTreeView:disabled {
+    color: __FG__;
+    background: __BG__;
+}
+
 QHeaderView::section {
     background: __BG__;
     border: none;
@@ -216,6 +255,10 @@ QCheckBox, QRadioButton {
     font-size: 12px;
     font-weight: 500;
     padding: 4px 0;
+    color: __FG__;
+}
+
+QCheckBox:disabled, QRadioButton:disabled {
     color: __FG__;
 }
 
@@ -435,6 +478,19 @@ QScrollBar::add-line, QScrollBar::sub-line, QScrollBar::add-page, QScrollBar::su
 
 #progressBar::chunk {
     background: __FG__;
+    border-radius: 2px;
+}
+
+QProgressBar {
+    border: none;
+    border-radius: 2px;
+    background: __BG__;
+    color: __FG__;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background: __ACCENT__;
     border-radius: 2px;
 }
 

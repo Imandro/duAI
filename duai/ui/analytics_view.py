@@ -4,8 +4,9 @@ from PySide6.QtCore import Qt, QDate, QDateTime, QTimer
 from PySide6.QtGui import QPainter, QColor, QFont
 from PySide6.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLabel, QWidget, QFrame, QComboBox,
-    QScrollArea, QGridLayout, QSizePolicy
+    QScrollArea, QGridLayout, QSizePolicy, QFileDialog, QMenu, QPushButton
 )
+import csv
 from PySide6.QtCharts import (
     QChart, QChartView, QLineSeries, QAreaSeries, QBarSeries, QBarSet,
     QDateTimeAxis, QValueAxis, QCategoryAxis, QPieSeries, QPieSlice
@@ -57,6 +58,17 @@ class AnalyticsView(QWidget):
         header.addStretch(1)
         header.addWidget(QLabel(t("analytics.range")))
         header.addWidget(self.range_combo)
+
+        # Exportar analíticas a CSV y PNG
+        self.export_btn = QPushButton(t("analytics.export"))
+        self.export_btn.setObjectName("exportBtn")
+        export_menu = QMenu(self)
+        act_csv = export_menu.addAction(t("analytics.export_csv"))
+        act_csv.triggered.connect(lambda: self._export_analytics("csv"))
+        act_png = export_menu.addAction(t("analytics.export_png"))
+        act_png.triggered.connect(lambda: self._export_analytics("png"))
+        self.export_btn.setMenu(export_menu)
+        header.addWidget(self.export_btn)
         outer.addLayout(header)
         
         # Summary cards
@@ -74,7 +86,7 @@ class AnalyticsView(QWidget):
             t("analytics.privacy_score"),
             str(latest_score.get("score", "—")) if latest_score else "—",
             latest_score.get("label", "") if latest_score else "",
-            "#10B981" if latest_score and latest_score.get("score", 0) >= 80 else "#F59E0B" if latest_score and latest_score.get("score", 0) >= 60 else "#EF4444"
+            "#FFFFFF" if latest_score and latest_score.get("score", 0) >= 80 else "#F59E0B" if latest_score and latest_score.get("score", 0) >= 60 else "#EF4444"
         )
         
         self.streak_card = self._create_summary_card(
@@ -156,7 +168,65 @@ class AnalyticsView(QWidget):
     def _get_days(self) -> int:
         idx = self.range_combo.currentIndex()
         return [7, 30, 90, 365][idx]
-    
+
+    def _export_analytics(self, fmt: str):
+        """Exporta analíticas a CSV o PNG.
+
+        El PNG se genera reutilizando duai/core/report_image.py.
+        Nunca se exportan datos sensibles (solo estadisticas agregadas).
+        """
+        try:
+            stats = get_stats()
+            latest = self._get_latest_score() or {}
+            streak = get_streak()
+
+            if fmt == "csv":
+                path, _ = QFileDialog.getSaveFileName(
+                    self, t("analytics.export_title_csv"), "duai_analiticas.csv", "CSV (*.csv)"
+                )
+                if not path:
+                    return
+                with open(path, "w", newline="", encoding="utf-8") as fh:
+                    writer = csv.writer(fh)
+                    writer.writerow(["metrica", "valor"])
+                    writer.writerow(["privacy_score", latest.get("score", "")])
+                    writer.writerow(["label", latest.get("label", "")])
+                    writer.writerow(["streak_days", streak.get("current", 0)])
+                    writer.writerow(["total_freed_bytes", stats.get("total_freed_bytes", 0)])
+                    writer.writerow(["scans", stats.get("scans", 0)])
+                    writer.writerow(["cleans", stats.get("cleans", 0)])
+                    writer.writerow(["panics", stats.get("panics", 0)])
+                    for key, label in [
+                        ("browser_traces", "browser"),
+                        ("system_traces", "system"),
+                        ("registry_traces", "registry"),
+                        ("ai_tool_traces", "ai_tools"),
+                        ("other_traces", "other"),
+                    ]:
+                        writer.writerow([label, stats.get(key, 0)])
+                self.mw.cli_output(t("analytics.exported_csv", path=path))
+
+            elif fmt == "png":
+                path, _ = QFileDialog.getSaveFileName(
+                    self, t("analytics.export_title_png"), "duai_analiticas.png", "PNG (*.png)"
+                )
+                if not path:
+                    return
+                from ..core.report_image import generate_report_image
+
+                generate_report_image(
+                    score=int(latest.get("score", 0) or 0),
+                    found_count=stats.get("total_found", 0),
+                    freed_bytes=stats.get("total_freed_bytes", 0),
+                    streak_days=streak.get("current", 0),
+                    achievements_unlocked=len(stats.unlocked_achievements()),
+                    output_path=path,
+                )
+                self.mw.cli_output(t("analytics.exported_png", path=path))
+
+        except Exception as exc:  # noqa: BLE001 - no fallar la UI por un export
+            self.mw.cli_output(t("analytics.export_error", error=str(exc)))
+
     def refresh(self):
         # Keep previous series alive until their widgets are really destroyed
         stale_refs = self._series_refs
@@ -214,10 +284,10 @@ class AnalyticsView(QWidget):
         from PySide6.QtGui import QLinearGradient, QGradient
         gradient = QLinearGradient(0, 0, 0, 1)
         gradient.setCoordinateMode(QGradient.CoordinateMode.ObjectBoundingMode)
-        gradient.setColorAt(0, QColor("#10B98180"))
-        gradient.setColorAt(1, QColor("#10B98100"))
+        gradient.setColorAt(0, QColor("#FFFFFF80"))
+        gradient.setColorAt(1, QColor("#FFFFFF00"))
         area_series.setBrush(gradient)
-        area_series.setPen(QColor("#10B981"))
+        area_series.setPen(QColor("#FFFFFF"))
         
         # Add data points
         parsed = []
@@ -297,7 +367,7 @@ class AnalyticsView(QWidget):
         scans_set = QBarSet(t("analytics.scans"))
         scans_set.setColor(QColor("#3B82F6"))
         cleans_set = QBarSet(t("analytics.cleans"))
-        cleans_set.setColor(QColor("#10B981"))
+        cleans_set.setColor(QColor("#FFFFFF"))
         
         # Distribute scans/cleans across days (simplified)
         import random
@@ -368,7 +438,7 @@ class AnalyticsView(QWidget):
         
         categories = [
             (t("analytics.browser"), stats.get("browser_traces", 0), "#3B82F6"),
-            (t("analytics.system"), stats.get("system_traces", 0), "#10B981"),
+            (t("analytics.system"), stats.get("system_traces", 0), "#FFFFFF"),
             (t("analytics.registry"), stats.get("registry_traces", 0), "#F59E0B"),
             (t("analytics.ai_tools"), stats.get("ai_tool_traces", 0), "#EF4444"),
             (t("analytics.other"), stats.get("other_traces", 0), "#8B5CF6"),
@@ -443,7 +513,7 @@ class AnalyticsView(QWidget):
             
             if cleans > 0:
                 slice_ = series.append(f"{t('analytics.cleans')} ({cleans})", cleans)
-                slice_.setColor(QColor("#10B981"))
+                slice_.setColor(QColor("#FFFFFF"))
                 slice_.setLabelVisible(True)
                 slice_.setLabelColor(QColor("#FFFFFF"))
             

@@ -206,7 +206,10 @@ def purge_own_recent_links(secure: bool = False) -> int:
 def purge_prefetch(secure: bool = False) -> int:
     """Purge duAI prefetch files."""
     removed = 0
-    prefetch_dir = os.path.join(os.environ.get("WINDIR", "C:\\Windows"), "Prefetch")
+    windir = os.environ.get("SystemRoot") or os.environ.get("WINDIR") or r"C:\Windows"
+    if not os.path.isabs(windir):
+        windir = r"C:\Windows"
+    prefetch_dir = os.path.join(windir, "Prefetch")
     if not os.path.exists(prefetch_dir):
         return 0
     
