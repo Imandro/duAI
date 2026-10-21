@@ -5,7 +5,7 @@
 #define MyAppPublisher "Imandro"
 #define MyAppURL "https://github.com/Imandro/duAI"
 #define MyAppExeName "duAI.exe"
-#define MyAppVersion "2.0.0"
+#define MyAppVersion "2.1.0"
 
 [Setup]
 AppId={{8C4F123A-1234-1234-1234-123456789ABC}}
